@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db, type Coach } from "@/db";
 import { apiSession, logAction } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { imageField } from "@/lib/images";
 import { DAYS } from "@/lib/coaches";
+import { clean } from "../../clean";
 
 const schema = z.object({
   specialization: z.string().trim().min(3, "Spécialité trop courte").max(80),
@@ -27,7 +27,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { session, error } = await apiSession();
   if (error) return error;
   const { id } = await params;
-  const coach = await db.query.coaches.findFirst({ where: eq(t.coaches.id, id) });
+  const coach = db.coaches.get(id);
   if (!coach) return bad("Coach introuvable", 404);
   const staff = session.can("coaches.manage");
   if (!staff && coach.userId !== session.userId) return bad("Accès refusé", 403);
@@ -35,10 +35,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (e2) return e2;
 
   const { availability, hourlyRate, commissionRate, status, ...rest } = data;
-  const update: Partial<typeof t.coaches.$inferInsert> = { ...rest, availability: JSON.stringify(availability) };
+  const update: Partial<Omit<Coach, "id">> = { ...rest, availability: JSON.stringify(availability) };
   if (staff) Object.assign(update, { hourlyRate, commissionRate, status });
   if (update.photo === null) delete update.photo; // une fiche coach garde toujours une photo
-  await db.update(t.coaches).set(update).where(eq(t.coaches.id, id));
+  db.coaches.update(id, clean(update));
   if (staff) await logAction(session, "Fiche coach modifiée", `${coach.firstName} ${coach.lastName}`);
   return NextResponse.json({ message: "Fiche coach mise à jour" });
 }

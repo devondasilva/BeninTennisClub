@@ -1,5 +1,5 @@
-import { desc, eq } from "drizzle-orm";
-import { db, t } from "@/db";
+import { db } from "@/db";
+import { sortBy } from "@/db/relations";
 import { requireSession } from "@/lib/auth";
 import { relativeFr } from "@/lib/format";
 import { PageHeader } from "@/components/ui";
@@ -9,7 +9,7 @@ export const metadata = { title: "Notifications" };
 
 export default async function NotificationsPage() {
   const s = await requireSession();
-  const list = await db.query.notifications.findMany({ where: eq(t.notifications.userId, s.userId), orderBy: desc(t.notifications.createdAt), limit: 100 });
+  const list = sortBy(db.notifications.filter((n) => n.userId === s.userId), "createdAt", "desc").slice(0, 100);
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title="Notifications" subtitle="Chaque notification est aussi envoyée par e-mail" />

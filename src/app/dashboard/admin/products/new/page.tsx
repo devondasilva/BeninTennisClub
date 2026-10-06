@@ -10,7 +10,7 @@ export default async function NewProduct() {
   return (
     <div className="mx-auto max-w-4xl">
       <BackLink href="/dashboard/admin/products" label="Articles" />
-      <PageHeader title="Ajouter un article" />
+      <PageHeader eyebrow="Back-office · Boutique" title="Ajouter un article" subtitle="Photo, prix et stock : l'article apparaît aussitôt dans la boutique" />
       <ProductForm initial={{ name: "", description: "", category: "ACCESSORIES", price: 5000, stock: 10, image: null, isActive: true }} />
     </div>
   );

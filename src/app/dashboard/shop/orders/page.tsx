@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { and, desc, eq } from "drizzle-orm";
-import { db, t } from "@/db";
+import { Package, Truck, Wallet, MapPin } from "lucide-react";
+import { db } from "@/db";
+import { sortBy, withOrderRefs } from "@/db/relations";
 import { requireSession } from "@/lib/auth";
 import { dateFr, xof } from "@/lib/format";
-import { Empty, PageHeader, StatusBadge } from "@/components/ui";
+import { Empty, PageHeader, StatCard, StatusBadge } from "@/components/ui";
 
 export const metadata = { title: "Mes commandes" };
 
@@ -11,53 +12,62 @@ const STEPS = ["PAID", "SHIPPED", "DELIVERED"];
 
 export default async function OrdersPage() {
   const s = await requireSession();
-  const orders = await db.query.orders.findMany({
-    where: eq(t.orders.userId, s.userId),
-    with: { items: { with: { product: true } } },
-    orderBy: desc(t.orders.createdAt),
-  });
-  const pending = await db.query.transactions.findMany({ where: and(eq(t.transactions.userId, s.userId), eq(t.transactions.type, "SHOP"), eq(t.transactions.status, "PENDING")) });
+  const orders = withOrderRefs(sortBy(db.orders.filter((o) => o.userId === s.userId), "createdAt", "desc"));
+  const pending = db.transactions.filter((t) => t.userId === s.userId && t.type === "SHOP" && t.status === "PENDING");
+
+  const paidOrders = orders.filter((o) => ["PAID", "SHIPPED", "DELIVERED"].includes(o.status));
+  const spent = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const inTransit = orders.filter((o) => o.status === "PAID" || o.status === "SHIPPED").length;
 
   return (
     <div>
-      <PageHeader title="Mes commandes" action={<Link href="/dashboard/shop" className="btn-accent">Retour à la boutique</Link>} />
+      <PageHeader eyebrow="Boutique officielle" title="Mes commandes" subtitle="Suivez la préparation et la livraison de vos achats."
+        action={<Link href="/dashboard/shop" className="btn-primary">Retour à la boutique</Link>} />
+
+      <div className="mb-8 grid gap-4 sm:grid-cols-3">
+        <StatCard label="Commandes" value={String(orders.length)} icon={Package} tone="navy" />
+        <StatCard label="En préparation / livraison" value={String(inTransit)} icon={Truck} tone="sky" />
+        <StatCard label="Total dépensé" value={xof(spent)} icon={Wallet} tone="lime" />
+      </div>
+
       {orders.length === 0 ? <Empty>Aucune commande pour l'instant.</Empty> : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {orders.map((o) => {
             const step = STEPS.indexOf(o.status);
             const tx = pending.find((p) => p.relatedId === o.id);
             return (
-              <div key={o.id} className="card p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+              <article key={o.id} className="card p-6 md:p-8">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-primary-400">Commande n° {o.id.slice(0, 8).toUpperCase()}</p>
-                    <p className="text-sm text-slate-500">Passée le {dateFr(o.createdAt)} · {o.shippingAddress}</p>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink/45">Passée le {dateFr(o.createdAt)}</p>
+                    <p className="mt-1 font-display text-xl font-black tracking-tight text-ink">Commande n° {o.id.slice(0, 8).toUpperCase()}</p>
+                    <p className="mt-1 flex items-center gap-1.5 text-sm text-muted"><MapPin size={14} className="text-brand" /> {o.shippingAddress}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <StatusBadge status={o.status} />
-                    <span className="text-lg font-bold text-primary-400">{xof(o.totalAmount)}</span>
+                    <span className="tabular font-display text-2xl font-black text-brand">{xof(o.totalAmount)}</span>
                   </div>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-3">
+                <div className="mt-5 flex flex-wrap gap-3">
                   {o.items.map((i) => (
-                    <div key={i.id} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2 pr-4">
-                      <img src={i.product.image ?? ""} alt="" className="h-12 w-12 rounded-lg object-cover" />
-                      <div className="text-sm"><p className="font-medium">{i.product.name}</p><p className="text-slate-500">{i.quantity} × {xof(i.price)}</p></div>
+                    <div key={i.id} className="flex items-center gap-3 rounded-2xl border border-ink/[0.06] bg-mist/70 p-2 pr-4">
+                      <img src={i.product.image ?? ""} alt="" className="h-12 w-12 rounded-xl bg-white object-cover" />
+                      <div className="text-sm"><p className="font-semibold text-ink">{i.product.name}</p><p className="text-muted">{i.quantity} × {xof(i.price)}</p></div>
                     </div>
                   ))}
                 </div>
                 {step >= 0 && (
-                  <div className="mt-5 grid grid-cols-3 gap-2 text-center text-xs font-semibold">
+                  <ol className="mt-6 grid grid-cols-3 gap-2 text-center text-[11px] font-bold uppercase tracking-widest" aria-label="Suivi de la commande">
                     {["Payée", "Expédiée", "Livrée"].map((l, i) => (
-                      <div key={l}>
-                        <div className={`h-1.5 rounded-full ${i <= step ? "bg-accent-500" : "bg-slate-100"}`} />
-                        <p className={`mt-1.5 ${i <= step ? "text-primary-400" : "text-slate-400"}`}>{l}</p>
-                      </div>
+                      <li key={l} aria-current={i === step ? "step" : undefined}>
+                        <div className={`h-1.5 rounded-full ${i <= step ? "bg-gradient-to-r from-brand to-lime-dark" : "bg-cloud"}`} />
+                        <p className={`mt-2 ${i <= step ? "text-ink" : "text-ink/35"}`}>{l}</p>
+                      </li>
                     ))}
-                  </div>
+                  </ol>
                 )}
-                {tx && <Link href={`/dashboard/payments/${tx.id}`} className="btn-accent mt-4">Payer cette commande</Link>}
-              </div>
+                {tx && <Link href={`/dashboard/payments/${tx.id}`} className="btn-primary mt-6">Payer cette commande</Link>}
+              </article>
             );
           })}
         </div>

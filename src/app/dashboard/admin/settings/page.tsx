@@ -10,9 +10,9 @@ export default async function SettingsPage() {
   await requireSession("content.manage");
   const [info, memberships] = await Promise.all([getClubInfo(), getMemberships()]);
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-5xl">
       <BackLink href="/dashboard/admin" label="Centre de contrôle" />
-      <PageHeader title="Infos du club" subtitle="Ces informations sont publiées sur le site" />
+      <PageHeader eyebrow="Back-office · Site" title="Infos du club" subtitle="Ces informations sont publiées sur le site" />
       <SettingsEditor info={info} memberships={memberships} />
     </div>
   );

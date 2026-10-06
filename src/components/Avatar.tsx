@@ -4,7 +4,7 @@ export default function Avatar({ src, name, size = 40, className = "" }: { src?:
   const style = { width: size, height: size, fontSize: Math.max(10, size * 0.36) };
   if (src) return <img src={src} alt={name} style={style} className={`shrink-0 rounded-full object-cover ${className}`} />;
   return (
-    <span style={style} className={`flex shrink-0 items-center justify-center rounded-full bg-accent-400 font-bold text-primary-400 ${className}`}>
+    <span style={style} role="img" aria-label={name} className={`flex shrink-0 items-center justify-center rounded-full bg-lime font-bold text-ink ${className}`}>
       {initials}
     </span>
   );

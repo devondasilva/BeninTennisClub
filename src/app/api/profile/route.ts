@@ -1,11 +1,11 @@
-import bcrypt from "bcryptjs";
-import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db, type Coach, type User } from "@/db";
 import { apiSession } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { imageField } from "@/lib/images";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { sessionResponse } from "../auth/session";
+import { clean } from "../clean";
 
 const schema = z.object({
   firstName: z.string().trim().min(2, "Prénom trop court"),
@@ -27,22 +27,25 @@ export async function PATCH(req: Request) {
   if (error) return error;
   const { data, error: e2 } = await parse(req, schema);
   if (e2) return e2;
-  const user = await db.query.users.findFirst({ where: eq(t.users.id, session.userId) });
+  const user = db.users.get(session.userId);
   if (!user) return bad("Utilisateur introuvable", 404);
 
+  // E-mail unique
   if (data.email !== user.email) {
-    const taken = await db.query.users.findFirst({ where: and(eq(t.users.email, data.email), ne(t.users.id, user.id)) });
+    const taken = db.users.find((x) => x.email === data.email && x.id !== user.id);
     if (taken) return bad("Cet e-mail est déjà utilisé par un autre compte", 409);
   }
 
   const { currentPassword, newPassword, ...fields } = data;
-  const update: Partial<typeof t.users.$inferInsert> = { ...fields, address: fields.address || null, bio: fields.bio || null };
+  const update: Partial<Omit<User, "id">> = { ...fields, address: fields.address || null, bio: fields.bio || null };
   if (newPassword) {
-    if (!currentPassword || !(await bcrypt.compare(currentPassword, user.password))) return bad("Mot de passe actuel incorrect");
-    update.password = await bcrypt.hash(newPassword, 10);
+    if (!currentPassword || !verifyPassword(currentPassword, user.password)) return bad("Mot de passe actuel incorrect");
+    update.password = hashPassword(newPassword);
   }
-  const [u] = await db.update(t.users).set(update).where(eq(t.users.id, user.id)).returning();
+  const u = db.users.update(user.id, clean(update))!;
   // Le coach lié garde le même nom, e-mail et téléphone
-  await db.update(t.coaches).set({ firstName: u.firstName, lastName: u.lastName, phone: u.phone ?? undefined, email: u.email }).where(eq(t.coaches.userId, u.id));
+  const coachPatch: Partial<Omit<Coach, "id">> = { firstName: u.firstName, lastName: u.lastName, email: u.email };
+  if (u.phone) coachPatch.phone = u.phone;
+  db.coaches.updateWhere((c) => c.userId === u.id, coachPatch);
   return sessionResponse(u, { message: newPassword ? "Profil et mot de passe mis à jour" : "Profil mis à jour" });
 }

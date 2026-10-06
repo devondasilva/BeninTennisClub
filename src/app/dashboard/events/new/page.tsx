@@ -10,7 +10,7 @@ export default async function NewEventPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <BackLink href="/dashboard/admin/events" label="Gestion des événements" />
-      <PageHeader title="Créer un événement" subtitle="Tournoi, stage, école de tennis ou soirée" />
+      <PageHeader eyebrow="Gestion des événements" title="Créer un événement" subtitle="Tournoi, stage, école de tennis ou soirée" />
       <EventForm initial={{ title: "", description: "", type: "TOURNAMENT", startDate: "", endDate: "", location: "Court 1", capacity: 32, price: 10000, image: null }} />
     </div>
   );

@@ -4,7 +4,21 @@ process.env.TZ = process.env.CLUB_TIMEZONE || "Africa/Porto-Novo";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: process.env.NODE_ENV === "development" ? ".next-dev" : ".next",
   images: { dangerouslyAllowSVG: true },
+  poweredByHeader: false,
+  // En-têtes de sécurité appliqués à toutes les pages
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
 };
 export default nextConfig;

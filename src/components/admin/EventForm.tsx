@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import { choiceCls } from "./kit";
 
 export type EventFormData = { id?: string; title: string; description: string; type: string; startDate: string; endDate: string; location: string; capacity: number; price: number; image: string | null };
 const TYPES = [["TOURNAMENT", "Tournoi"], ["STAGE", "Stage"], ["SCHOOL", "École de tennis"], ["GATHERING", "Convivialité"]];
@@ -25,27 +26,27 @@ export default function EventForm({ initial }: { initial: EventFormData }) {
   }
 
   return (
-    <form onSubmit={submit} className="card space-y-4 p-6">
-      {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-      <div><label className="label">Titre</label><input className="input" value={f.title} onChange={(e) => set("title", e.target.value)} required /></div>
+    <form onSubmit={submit} className="card space-y-5 p-6 md:p-8">
+      {error && <p role="alert" className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
+      <div><label className="label" htmlFor="ev-title">Titre</label><input id="ev-title" className="input" value={f.title} onChange={(e) => set("title", e.target.value)} required /></div>
       <div>
-        <label className="label">Type</label>
+        <p className="label">Type</p>
         <div className="flex flex-wrap gap-2">
-          {TYPES.map(([k, l]) => <button type="button" key={k} onClick={() => set("type", k)} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${f.type === k ? "bg-primary-400 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{l}</button>)}
+          {TYPES.map(([k, l]) => <button type="button" key={k} aria-pressed={f.type === k} onClick={() => set("type", k)} className={choiceCls(f.type === k)}>{l}</button>)}
         </div>
       </div>
-      <div><label className="label">Description</label><textarea className="input" rows={4} value={f.description} onChange={(e) => set("description", e.target.value)} required /></div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div><label className="label">Début</label><input className="input" type="datetime-local" value={f.startDate} onChange={(e) => set("startDate", e.target.value)} required /></div>
-        <div><label className="label">Fin</label><input className="input" type="datetime-local" value={f.endDate} onChange={(e) => set("endDate", e.target.value)} required /></div>
-        <div><label className="label">Lieu</label><input className="input" value={f.location} onChange={(e) => set("location", e.target.value)} required /></div>
+      <div><label className="label" htmlFor="ev-desc">Description</label><textarea id="ev-desc" className="input" rows={4} value={f.description} onChange={(e) => set("description", e.target.value)} required /></div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div><label className="label" htmlFor="ev-start">Début</label><input id="ev-start" className="input" type="datetime-local" value={f.startDate} onChange={(e) => set("startDate", e.target.value)} required /></div>
+        <div><label className="label" htmlFor="ev-end">Fin</label><input id="ev-end" className="input" type="datetime-local" value={f.endDate} onChange={(e) => set("endDate", e.target.value)} required /></div>
+        <div><label className="label" htmlFor="ev-loc">Lieu</label><input id="ev-loc" className="input" value={f.location} onChange={(e) => set("location", e.target.value)} required /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className="label">Places</label><input className="input" type="number" min={1} value={f.capacity} onChange={(e) => set("capacity", Number(e.target.value))} /></div>
-          <div><label className="label">Prix (0 = gratuit)</label><input className="input" type="number" min={0} step="any" value={f.price} onChange={(e) => set("price", Number(e.target.value))} /></div>
+          <div><label className="label" htmlFor="ev-cap">Places</label><input id="ev-cap" className="input" type="number" min={1} value={f.capacity} onChange={(e) => set("capacity", Number(e.target.value))} /></div>
+          <div><label className="label" htmlFor="ev-price">Prix (0 = gratuit)</label><input id="ev-price" className="input" type="number" min={0} step="any" value={f.price} onChange={(e) => set("price", Number(e.target.value))} /></div>
         </div>
       </div>
       <ImageUpload label="Visuel (facultatif)" hint="Sinon une illustration selon le type est utilisée" value={f.image} onChange={(v) => set("image", v)} ratio={2} maxWidth={1200} mode="cover" previewClass="aspect-[2/1] max-w-md" />
-      <button className="btn-primary w-full py-3" disabled={loading}>{loading && <Loader2 size={16} className="animate-spin" />} {f.id ? "Enregistrer les modifications" : "Publier l'événement"}</button>
+      <button className="btn-primary w-full" disabled={loading}>{loading && <Loader2 size={16} className="animate-spin" />} {f.id ? "Enregistrer les modifications" : "Publier l'événement"}</button>
     </form>
   );
 }

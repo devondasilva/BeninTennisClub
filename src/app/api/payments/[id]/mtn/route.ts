@@ -1,7 +1,6 @@
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { completeTransaction, paymentModes } from "@/lib/payments";
@@ -29,7 +28,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   } else {
     reference = `DEMO-MTN-${Date.now()}`;
   }
-  await db.update(t.transactions).set({ method: "MTN_MONEY", reference }).where(eq(t.transactions.id, tx.id));
+  db.transactions.update(tx.id, { method: "MTN_MONEY", reference });
   return NextResponse.json({ status: "PENDING", reference });
 }
 
@@ -38,7 +37,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { session, error } = await apiSession();
   if (error) return error;
   const { id } = await params;
-  const tx = await db.query.transactions.findFirst({ where: eq(t.transactions.id, id) });
+  const tx = db.transactions.get(id);
   if (!tx || tx.userId !== session.userId) return bad("Paiement introuvable", 404);
   if (tx.status !== "PENDING") return NextResponse.json({ status: tx.status });
   if (!tx.reference) return NextResponse.json({ status: "PENDING" });
@@ -55,7 +54,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ status: "COMPLETED" });
   }
   if (status === "FAILED") {
-    await db.update(t.transactions).set({ status: "FAILED" }).where(eq(t.transactions.id, tx.id));
+    db.transactions.update(tx.id, { status: "FAILED" });
     return NextResponse.json({ status: "FAILED" });
   }
   return NextResponse.json({ status: "PENDING" });

@@ -1,7 +1,6 @@
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { createTransaction } from "@/lib/payments";
@@ -19,13 +18,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const { data, error: e2 } = await parse(req, schema);
   if (e2) return e2;
-  const c = await db.query.campaigns.findFirst({ where: eq(t.campaigns.id, id) });
+  const c = db.campaigns.get(id);
   if (!c) return bad("Collecte introuvable", 404);
   if (c.status !== "ACTIVE" || c.deadline < new Date()) return bad("Cette collecte est terminée");
-  const [d] = await db.insert(t.donations).values({
+  const d = db.donations.insert({
     campaignId: id, userId: session.userId, amount: data.amount, anonymous: data.anonymous,
     donorName: data.anonymous ? null : data.donorName || `${session.firstName} ${session.lastName}`, message: data.message || null,
-  }).returning();
+  });
   const tx = await createTransaction(session.userId, "DONATION", d.id, data.amount, `Don — ${c.title}`);
   return NextResponse.json({ paymentUrl: `/dashboard/payments/${tx.id}` }, { status: 201 });
 }

@@ -15,10 +15,18 @@ export default function TxActions({ id, status }: { id: string; status: string }
     setConfirm(false);
     router.refresh();
   }
-  if (msg) return <span className="text-xs text-emerald-700">{msg}</span>;
-  if (confirm) return <span className="whitespace-nowrap text-xs">{action === "cash" ? "Encaissé ?" : "Rembourser ?"} <button onClick={go} className="font-semibold text-primary-400">Oui</button> · <button onClick={() => setConfirm(false)} className="text-slate-500">Non</button></span>;
+  if (msg) return <span role="status" className="inline-flex rounded-full bg-lime-light px-2.5 py-1 text-xs font-semibold text-ink">{msg}</span>;
+  if (confirm)
+    return (
+      <span className="inline-flex items-center gap-2 whitespace-nowrap text-xs">
+        <span className="text-muted">{action === "cash" ? "Encaissé ?" : "Rembourser ?"}</span>
+        <button type="button" onClick={go} className="rounded-full bg-ink px-3 py-1 font-bold text-white hover:bg-brand">Oui</button>
+        <button type="button" onClick={() => setConfirm(false)} className="rounded-full px-2 py-1 font-semibold text-muted hover:text-ink">Non</button>
+      </span>
+    );
   return (
-    <button onClick={() => setConfirm(true)} className={`whitespace-nowrap text-xs font-semibold hover:underline ${action === "cash" ? "text-emerald-700" : "text-red-600"}`}>
+    <button type="button" onClick={() => setConfirm(true)}
+      className={`whitespace-nowrap rounded-full border px-3 py-1 text-xs font-bold transition-colors ${action === "cash" ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100" : "border-red-200 bg-white text-red-700 hover:bg-red-50"}`}>
       {action === "cash" ? "Encaisser (espèces)" : "Rembourser"}
     </button>
   );

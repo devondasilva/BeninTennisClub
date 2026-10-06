@@ -1,12 +1,10 @@
-import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession, logAction } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { imageField } from "@/lib/images";
-import { tempPassword } from "@/lib/password";
+import { hashPassword, tempPassword } from "@/lib/password";
 
 const schema = z.object({
   firstName: z.string().trim().min(2, "Prénom trop court"), lastName: z.string().trim().min(2, "Nom trop court"),
@@ -20,7 +18,7 @@ const schema = z.object({
 });
 
 export async function GET() {
-  const coaches = await db.query.coaches.findMany();
+  const coaches = db.coaches.all();
   return NextResponse.json({ coaches });
 }
 
@@ -30,29 +28,33 @@ export async function POST(req: Request) {
   if (error) return error;
   const { data, error: e2 } = await parse(req, schema);
   if (e2) return e2;
-  if (await db.query.coaches.findFirst({ where: eq(t.coaches.email, data.email) })) return bad("Un coach existe déjà avec cet e-mail", 409);
+  // E-mail unique parmi les coachs
+  if (db.coaches.find((c) => c.email === data.email)) return bad("Un coach existe déjà avec cet e-mail", 409);
 
   let userId: string | null = null;
   let password: string | null = null;
   if (data.createAccount) {
-    const existing = await db.query.users.findFirst({ where: eq(t.users.email, data.email) });
+    const existing = db.users.find((u) => u.email === data.email);
     if (existing) {
+      // Un compte ne peut être lié qu'à une seule fiche coach
+      if (db.coaches.find((c) => c.userId === existing.id)) return bad("Un coach existe déjà avec cet e-mail", 409);
       userId = existing.id;
-      if (["CLIENT", "PARENT"].includes(existing.role)) await db.update(t.users).set({ role: "COACH" }).where(eq(t.users.id, existing.id));
+      if (["CLIENT", "PARENT"].includes(existing.role)) db.users.update(existing.id, { role: "COACH" });
     } else {
       password = tempPassword();
-      const [u] = await db.insert(t.users).values({
+      const u = db.users.insert({
         firstName: data.firstName, lastName: data.lastName, email: data.email, phone: data.phone, role: "COACH",
-        password: await bcrypt.hash(password, 10), avatar: data.photo ?? null,
-      }).returning();
+        password: hashPassword(password), avatar: data.photo ?? null,
+      });
       userId = u.id;
     }
   }
   const { createAccount, ...fields } = data;
-  const [coach] = await db.insert(t.coaches).values({
+  void createAccount;
+  const coach = db.coaches.insert({
     ...fields, userId, photo: data.photo ?? `/images/coaches/coach-${(Math.floor(Math.random() * 6) + 1)}.svg`,
     availability: "[]",
-  }).returning();
+  });
   await logAction(session, "Coach ajouté", `${coach.firstName} ${coach.lastName}`);
   return NextResponse.json({ coach, tempPassword: password, linkedExisting: !!userId && !password }, { status: 201 });
 }

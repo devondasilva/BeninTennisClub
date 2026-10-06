@@ -2,21 +2,20 @@
 
 Plateforme du club : réservation de courts, événements, boutique, coachs et commissions, cordage, collectes, paiements MTN Mobile Money et carte.
 
-**Stack :** Next.js 15 · React 19 · TypeScript · Tailwind CSS · Drizzle ORM · SQLite (libSQL) · JWT (cookie httpOnly) · Zod · Stripe · MTN MoMo · Nodemailer
+**Stack :** Next.js 14 · React 18 · TypeScript · Tailwind CSS · Framer Motion · base de données en fichiers JSON (`data/*.json`, comme Beach Tennis Bénin) · sessions signées (cookie httpOnly) · Zod · Stripe · MTN MoMo · Nodemailer
 
 ---
 
-## Démarrage en 3 commandes
+## Démarrage en 2 commandes
 
-Prérequis : **Node.js 20 ou plus récent** ([nodejs.org](https://nodejs.org)). Rien d'autre à installer : pas de PostgreSQL, pas de Docker.
+Prérequis : **Node.js 18.18 ou plus récent** (20 ou 22 conseillé, [nodejs.org](https://nodejs.org)). Rien d'autre à installer : pas de base de données, pas de Docker, aucune commande de préparation.
 
 ```bash
 npm install
-npm run setup      # crée la base SQLite (btc.db) et charge les données de démo
 npm run dev
 ```
 
-Ouvrez **http://localhost:3000**.
+Ouvrez **http://localhost:3000**. Les données de démonstration (comptes, courts, coachs, boutique, événements…) sont déjà dans le dossier **`data/`** : un fichier JSON par type de données, exactement comme pour Beach Tennis Bénin.
 
 ### Comptes de démonstration (mot de passe `demo1234`)
 
@@ -69,7 +68,7 @@ Le **Centre de contrôle** (menu « Gestion du club ») regroupe tous les outils
 
 **Accès précis.** Chaque rôle fournit des accès par défaut (Administrateur : tout ; Gestionnaire : tout sauf les accès ; Personnel : réservations, cordage, commandes, messages). Sur la fiche d'un membre, l'administrateur peut cocher un ou plusieurs accès en plus, parmi 15 : Adhérents, Infos du club, Messages, Statistiques, Courts, Réservations, Événements, Coachs, Commissions, Atelier cordage, Articles, Commandes, Paiements, Collectes, Partenaires. Exemple : un bénévole qui tient la boutique reçoit « Articles » et « Commandes » et ne voit que ces deux outils. Les changements s'appliquent immédiatement, chaque page et chaque action sont vérifiées côté serveur, et toutes les actions sont inscrites au journal.
 
-Les photos envoyées depuis l'administration (articles, courts, événements, collectes) sont enregistrées dans le dossier `uploads/` du projet. Sauvegardez-le avec la base `btc.db`.
+Les photos envoyées depuis l'administration (articles, courts, événements, collectes) sont enregistrées dans le dossier `uploads/` du projet. Sauvegardez-le avec le dossier de données `data/`.
 
 ## Partenaires & espaces publicitaires
 
@@ -141,9 +140,10 @@ Les tarifs (prix par créneau de 30 min) sont stockés par court dans la base : 
 |---|---|
 | `npm run dev` | Serveur de développement |
 | `npm run build` puis `npm start` | Version de production |
-| `npm run db:reset` | Remet la base à zéro avec les données de démo |
-| `npm run db:studio` | Explorer la base dans le navigateur (Drizzle Studio) |
-| `npm run db:generate` | Générer une migration après modification de `src/db/schema.ts` |
+| `npm run reset` | Remet les données de démonstration (les données actuelles sont d'abord copiées dans `data/sauvegardes/`) |
+| `npm run check` | Vérification complète : types TypeScript + tests automatiques |
+| `npm test` | Tests automatiques (permissions, sécurité, base de données…) |
+| `npm run test:smoke` | Contrôle rapide d'un serveur lancé : pages, connexion, espace membre |
 | `npm run images` | Régénérer les illustrations SVG |
 
 ---
@@ -155,21 +155,59 @@ src/
 ├── app/
 │   ├── (site)/                  Site public : accueil, club, coachs, tarifs, événements, contact
 │   ├── login/ register/         Authentification
-│   ├── dashboard/               Espace membre (une page par module)
-│   └── api/                     Routes API (auth, réservations, paiements, boutique…)
+│   ├── dashboard/               Espace membre (une page par module, error.tsx en cas d'incident)
+│   └── api/                     Routes API (auth, réservations, paiements, boutique, health…)
 ├── components/                  Menu latéral, boutons, cartes
 ├── db/
 │   ├── schema.ts                Schéma de la base (18 tables)
-│   ├── migrate.ts / seed.ts     Création des tables / données de démo
-├── lib/                         Auth JWT, paiements, MTN, Stripe, e-mails, formatage
+│   ├── index.ts                 Les collections (users, reservations, coaches…)
+│   ├── store.ts                 Lecture / écriture des fichiers data/*.json
+│   ├── relations.ts             Jointures courantes (réservation + court + coach…)
+│   ├── types.ts                 Types des données
+├── lib/                         Sessions, permissions, paiements, MTN, Stripe, e-mails, formatage
 └── middleware.ts                Protection des pages /dashboard
-drizzle/                         Migrations SQL
+scripts/seed.mjs                 Données de démonstration (npm run reset)
+data/                            Vos données : un fichier JSON par collection (à sauvegarder)
 public/images/                   Illustrations (produits, courts, événements, coachs…)
 captures/                        Captures d'écran de toutes les pages
+tests/                           Tests unitaires (Vitest) et test de fumée
+.github/workflows/ci.yml         Intégration continue (Linux + Windows)
+ARCHITECTURE.md                  Choix techniques et fonctionnement interne
 ```
 
-## Passer à PostgreSQL ou Turso plus tard
+## La base de données
 
-Pour la mise en ligne, le plus simple est **Turso** (libSQL hébergé, aucune modification de code) : renseignez `DATABASE_URL=libsql://…` et `DATABASE_AUTH_TOKEN`. Pour PostgreSQL, adaptez `src/db/schema.ts` (`pg-core`) et `src/db/index.ts` (driver `postgres`).
-#   B e n i n T e n n i s C l u b  
- 
+Même principe que **Beach Tennis Bénin** : les données sont de simples fichiers JSON dans le dossier **`data/`**, un fichier par type de données :
+
+| Fichier | Contenu |
+|---|---|
+| `users.json` | Membres, rôles, accès précis, mots de passe hachés |
+| `courts.json`, `reservations.json` | Courts et réservations |
+| `coaches.json`, `coach-reviews.json`, `commissions.json` | Coachs, avis, commissions |
+| `events.json`, `event-registrations.json` | Événements et inscriptions |
+| `products.json`, `orders.json`, `order-items.json` | Boutique et commandes |
+| `transactions.json` | Paiements |
+| `stringing-requests.json`, `campaigns.json`, `donations.json` | Cordage, collectes, dons |
+| `partners.json` | Partenaires et bannières publicitaires |
+| `notifications.json`, `contact-messages.json`, `settings.json`, `admin-logs.json` | Notifications, messages du site, réglages, journal |
+
+- **Rien à installer, rien à préparer** : le dossier est livré rempli. S'il est supprimé, il est recréé automatiquement au lancement suivant.
+- **Lisible et modifiable** : ouvrez un fichier dans un éditeur de texte. Une modification faite à la main est prise en compte immédiatement, même pendant que l'application tourne.
+- **Enregistrement immédiat** et sûr : chaque action réécrit le fichier concerné (écriture atomique, avec reprise automatique si Windows verrouille brièvement le fichier).
+- **Sauvegarde** : copiez le dossier `data/` (et `uploads/` pour les photos). `npm run reset` fait lui-même une copie dans `data/sauvegardes/` avant de remettre la démo.
+- **Évolution** : tout l'accès aux données passe par `src/db/` ; on pourra le remplacer par PostgreSQL ou Supabase sans toucher au reste du code.
+
+---
+
+## En cas de problème
+
+| Symptôme | Solution |
+|---|---|
+| Le tableau de bord ne s'ouvre pas / la page tourne en boucle | Une connexion devenue invalide est effacée automatiquement. Avec une ancienne version, supprimez les cookies de `localhost:3000` ou ouvrez une fenêtre privée. |
+| « Votre session a expiré » | Normal après `npm run reset` : reconnectez-vous (`admin@btc.bj` / `demo1234`). |
+| `Node.js … est trop ancien` | Installez Node.js 20 ou 22 depuis [nodejs.org](https://nodejs.org). |
+| Le port 3000 est déjà utilisé | Un autre serveur tourne : fermez l'autre terminal, ou utilisez l'adresse indiquée (3001…). |
+| « Le fichier data/… .json est illisible » | Une modification à la main a cassé le JSON : corrigez-la, restaurez une copie depuis `data/sauvegardes/`, ou `npm run reset`. |
+| Une page affiche « Un incident est survenu » | Cliquez sur Réessayer. En développement, le message technique est affiché : envoyez-le au développeur. |
+
+Pour vérifier l'état de l'application : **http://localhost:3000/api/health** (doit afficher `"status": "ok"`).

@@ -1,4 +1,4 @@
-import type { Coach } from "@/db/schema";
+import type { Coach } from "@/db";
 import { parseAvailability } from "./coaches";
 import type { CoachFormData } from "@/components/CoachProfileForm";
 

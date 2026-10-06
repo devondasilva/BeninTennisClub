@@ -49,21 +49,21 @@ export default function ImageUpload({ label, hint, value, onChange, ratio, maxWi
   return (
     <div>
       <p className="label">{label}</p>
-      <div className={`relative flex items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 ${previewClass}`}>
+      <div className={`relative flex items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-ink/15 bg-mist ${previewClass}`}>
         {value ? (
           <img src={value} alt="" className={`h-full w-full ${mode === "contain" ? "object-contain p-3" : "object-cover"}`} />
         ) : (
-          <button type="button" onClick={() => input.current?.click()} className="flex flex-col items-center gap-1 text-sm text-slate-400 hover:text-primary-400">
+          <button type="button" onClick={() => input.current?.click()} className="flex h-full w-full flex-col items-center justify-center gap-1.5 text-sm font-semibold text-ink/45 transition-colors hover:text-brand">
             <ImageIcon size={28} /> Cliquez pour choisir une image
           </button>
         )}
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => input.current?.click()} className="btn-primary px-3 py-2 text-xs"><Upload size={14} /> {value ? "Remplacer" : "Importer"}</button>
-        {value && <button type="button" onClick={() => onChange(null)} className="btn-ghost px-3 py-2 text-xs"><Trash2 size={14} /> Retirer</button>}
-        <span className="text-xs text-slate-400">{hint}</span>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button type="button" onClick={() => input.current?.click()} className="btn-primary btn-sm"><Upload size={14} /> {value ? "Remplacer" : "Importer"}</button>
+        {value && <button type="button" onClick={() => onChange(null)} className="btn-ghost btn-sm"><Trash2 size={14} /> Retirer</button>}
+        <span className="text-xs text-muted">{hint}</span>
       </div>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p role="alert" className="mt-1 text-xs font-semibold text-red-700">{error}</p>}
       <input ref={input} type="file" accept="image/*" className="hidden" onChange={onFile} />
     </div>
   );

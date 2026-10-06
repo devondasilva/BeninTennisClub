@@ -1,5 +1,4 @@
-import { and, eq, gte, lte, sql } from "drizzle-orm";
-import { db, t } from "@/db";
+import { db, type Partner } from "@/db";
 
 export const PLACEMENTS: Record<string, { label: string; hint: string }> = {
   HOME: { label: "Accueil du site", hint: "Grande bannière entre les sections de la page d'accueil" },
@@ -29,7 +28,7 @@ export const partnerClickUrl = (id: string) => `/api/partners/${id}/click`;
 /** Partenaires actifs aujourd'hui */
 export function activeFilter() {
   const now = new Date();
-  return and(eq(t.partners.status, "ACTIVE"), lte(t.partners.startDate, now), gte(t.partners.endDate, now));
+  return (p: Partner) => p.status === "ACTIVE" && p.startDate <= now && p.endDate >= now;
 }
 
 /**
@@ -37,7 +36,7 @@ export function activeFilter() {
  * et compte un affichage. Renvoie null si l'emplacement est libre.
  */
 export async function pickAd(placement: string) {
-  const list = (await db.query.partners.findMany({ where: activeFilter() })).filter(
+  const list = db.partners.filter(activeFilter()).filter(
     (p) => p.banner && p.placements.split(",").includes(placement)
   );
   if (!list.length) return null;
@@ -45,6 +44,6 @@ export async function pickAd(placement: string) {
   const total = list.reduce((s, p) => s + (weight[p.tier] ?? 1), 0);
   let r = Math.random() * total;
   const ad = list.find((p) => (r -= weight[p.tier] ?? 1) < 0) ?? list[0];
-  await db.update(t.partners).set({ impressions: sql`${t.partners.impressions} + 1` }).where(eq(t.partners.id, ad.id));
+  db.partners.update(ad.id, (p) => ({ impressions: p.impressions + 1 }));
   return { id: ad.id, name: ad.name, tagline: ad.tagline, banner: partnerImage(ad, "banner")!, href: partnerClickUrl(ad.id) };
 }

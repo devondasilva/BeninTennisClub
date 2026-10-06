@@ -1,0 +1,29 @@
+[
+  {
+    "id": "13799b88-4581-4677-b440-3eb6150d5459",
+    "name": "Court 1",
+    "surface": "Dur (résine bleue)",
+    "image": "/images/courts/court-1.svg",
+    "pricePerSlot": 5000,
+    "description": "Court central éclairé, tribunes de 120 places.",
+    "isActive": true
+  },
+  {
+    "id": "20dc60ae-1ac3-45fe-b441-7981fcfa0074",
+    "name": "Court 2",
+    "surface": "Dur (résine verte)",
+    "image": "/images/courts/court-2.svg",
+    "pricePerSlot": 5000,
+    "description": "Idéal pour l'entraînement, éclairage LED.",
+    "isActive": true
+  },
+  {
+    "id": "47e3129c-5964-4f38-bfca-627c8365834b",
+    "name": "Court 3",
+    "surface": "Terre battue",
+    "image": "/images/courts/court-3.svg",
+    "pricePerSlot": 6000,
+    "description": "Surface lente, ombragée par les palmiers.",
+    "isActive": true
+  }
+]

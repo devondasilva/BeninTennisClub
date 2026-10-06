@@ -1,5 +1,4 @@
-import { sql } from "drizzle-orm";
-import { db, t } from "@/db";
+import { db } from "@/db";
 
 export type Slot = { day: string; hours: string };
 
@@ -18,12 +17,9 @@ export const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"
 
 /** Note moyenne et nombre d'avis par coach */
 export async function coachRatings() {
-  const rows = await db
-    .select({ coachId: t.coachReviews.coachId, avg: sql<number>`avg(${t.coachReviews.rating})`, n: sql<number>`count(*)` })
-    .from(t.coachReviews)
-    .groupBy(t.coachReviews.coachId);
+  const reviews = db.coachReviews.all();
   return (id: string) => {
-    const r = rows.find((x) => x.coachId === id);
-    return { avg: r ? Number(r.avg) : 0, count: r?.n ?? 0 };
+    const mine = reviews.filter((r) => r.coachId === id);
+    return { avg: mine.length ? mine.reduce((s, r) => s + r.rating, 0) / mine.length : 0, count: mine.length };
   };
 }

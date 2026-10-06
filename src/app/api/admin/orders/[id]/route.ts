@@ -1,7 +1,6 @@
-import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession, logAction } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { notify } from "@/lib/notify";
@@ -19,18 +18,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const { data, error: e2 } = await parse(req, schema);
   if (e2) return e2;
-  const order = await db.query.orders.findFirst({ where: eq(t.orders.id, id), with: { items: true, user: true } });
+  const order = db.orders.get(id);
   if (!order) return bad("Commande introuvable", 404);
   if (order.status === "CANCELLED") return bad("Cette commande est déjà annulée");
   if (order.status === "PENDING_PAYMENT" && data.status !== "CANCELLED") return bad("Cette commande n'est pas encore payée");
+  const user = db.users.get(order.userId);
 
-  await db.update(t.orders).set({ status: data.status }).where(eq(t.orders.id, id));
+  db.orders.update(id, { status: data.status });
   if (data.status === "CANCELLED") {
-    for (const i of order.items) await db.update(t.products).set({ stock: sql`${t.products.stock} + ${i.quantity}` }).where(eq(t.products.id, i.productId));
-    await db.update(t.transactions).set({ status: "REFUNDED" }).where(and(eq(t.transactions.relatedId, id), eq(t.transactions.status, "COMPLETED")));
-    await db.update(t.transactions).set({ status: "FAILED" }).where(and(eq(t.transactions.relatedId, id), eq(t.transactions.status, "PENDING")));
+    // Remet en stock les articles de la commande
+    for (const i of db.orderItems.filter((x) => x.orderId === id)) db.products.update(i.productId, (p) => ({ stock: p.stock + i.quantity }));
+    db.transactions.updateWhere((t) => t.relatedId === id && t.status === "COMPLETED", { status: "REFUNDED" });
+    db.transactions.updateWhere((t) => t.relatedId === id && t.status === "PENDING", { status: "FAILED" });
   }
   if (MSG[data.status]) await notify(order.userId, "ORDER_CONFIRMED", MSG[data.status][0], MSG[data.status][1], "/dashboard/shop/orders");
-  await logAction(session, `Commande ${({ PAID: "remise à préparer", SHIPPED: "expédiée", DELIVERED: "livrée", CANCELLED: "annulée" })[data.status]}`, `n° ${id.slice(0, 8).toUpperCase()} — ${order.user.firstName} ${order.user.lastName}`);
+  await logAction(session, `Commande ${({ PAID: "remise à préparer", SHIPPED: "expédiée", DELIVERED: "livrée", CANCELLED: "annulée" })[data.status]}`, `n° ${id.slice(0, 8).toUpperCase()} — ${user?.firstName ?? ""} ${user?.lastName ?? ""}`);
   return NextResponse.json({ message: "Commande mise à jour" });
 }

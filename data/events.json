@@ -1,0 +1,67 @@
+[
+  {
+    "id": "98e78130-7fb0-429c-b328-a04e73b38627",
+    "title": "Open de Cotonou 2026",
+    "description": "Le tournoi phare du club : simples messieurs et dames, tableaux de la 4e série à 15/1. Dotation de 1 500 000 XOF.",
+    "type": "TOURNAMENT",
+    "startDate": "2026-10-20T12:00:00.000Z",
+    "endDate": "2026-10-27T23:00:00.000Z",
+    "location": "Courts 1, 2 et 3",
+    "capacity": 64,
+    "price": 15000,
+    "image": "/images/events/tournament.svg",
+    "status": "ACTIVE"
+  },
+  {
+    "id": "8d0cb522-bcef-4a63-84b0-3d94e661956e",
+    "title": "Stage vacances de la Toussaint",
+    "description": "5 jours intensifs pour les 10-16 ans : technique, tactique, préparation physique. Déjeuner inclus.",
+    "type": "STAGE",
+    "startDate": "2026-10-29T13:00:00.000Z",
+    "endDate": "2026-11-02T21:00:00.000Z",
+    "location": "Court 2",
+    "capacity": 20,
+    "price": 45000,
+    "image": "/images/events/stage.svg",
+    "status": "ACTIVE"
+  },
+  {
+    "id": "bb754280-3acd-448d-8d7a-356ea1fcd0e8",
+    "title": "École de tennis — rentrée",
+    "description": "Cours hebdomadaires pour les 5-12 ans, le mercredi et le samedi. Prêt de raquettes pour les débutants.",
+    "type": "SCHOOL",
+    "startDate": "2026-10-11T18:00:00.000Z",
+    "endDate": "2027-04-04T21:00:00.000Z",
+    "location": "Court 3",
+    "capacity": 40,
+    "price": 30000,
+    "image": "/images/events/school.svg",
+    "status": "ACTIVE"
+  },
+  {
+    "id": "2b8f735b-ce0e-41e1-87ea-0be9d1513ddb",
+    "title": "Soirée des adhérents",
+    "description": "Double mixte surprise, barbecue et musique pour fêter la nouvelle saison.",
+    "type": "GATHERING",
+    "startDate": "2026-10-15T22:00:00.000Z",
+    "endDate": "2026-10-16T03:00:00.000Z",
+    "location": "Club-house",
+    "capacity": 120,
+    "price": 0,
+    "image": "/images/events/gathering.svg",
+    "status": "ACTIVE"
+  },
+  {
+    "id": "de758d75-8c04-4b9c-9abe-0c3b6ed5b581",
+    "title": "Tournoi nocturne en double",
+    "description": "Doubles en nocturne sous les projecteurs, format rapide en un set.",
+    "type": "TOURNAMENT",
+    "startDate": "2026-11-11T00:00:00.000Z",
+    "endDate": "2026-11-11T04:00:00.000Z",
+    "location": "Court 1",
+    "capacity": 32,
+    "price": 10000,
+    "image": "/images/events/night-tournament.svg",
+    "status": "ACTIVE"
+  }
+]

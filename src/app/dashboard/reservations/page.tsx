@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { and, asc, desc, eq, gte, lt } from "drizzle-orm";
-import { Plus } from "lucide-react";
-import { db, t } from "@/db";
+import { Plus, CalendarDays, Clock, Timer } from "lucide-react";
+import { db } from "@/db";
+import { sortBy, withReservationRefs } from "@/db/relations";
 import { requireSession } from "@/lib/auth";
 import { dateFr, timeFr, xof } from "@/lib/format";
-import { Empty, PageHeader, StatusBadge } from "@/components/ui";
+import { PageHeader, StatCard, StatusBadge } from "@/components/ui";
 import CancelButton from "@/components/CancelButton";
+import { SegLinks } from "../_member/ui";
 
 export const metadata = { title: "Réservations" };
 
@@ -16,76 +17,97 @@ export default async function ReservationsPage({ searchParams }: { searchParams:
   const all = staff && scope === "club";
   const now = new Date();
 
-  const where = and(
-    all ? undefined : eq(t.reservations.userId, s.userId),
-    tab === "upcoming" ? gte(t.reservations.endTime, now) : lt(t.reservations.endTime, now)
-  );
-  const list = await db.query.reservations.findMany({
-    where,
-    with: { court: true, coach: true, user: true },
-    orderBy: tab === "upcoming" ? asc(t.reservations.startTime) : desc(t.reservations.startTime),
-    limit: 60,
-  });
+  const scoped = db.reservations.filter((r) => all || r.userId === s.userId);
+  const list = sortBy(
+    withReservationRefs(scoped.filter((r) => (tab === "upcoming" ? r.endTime >= now : r.endTime < now))),
+    "startTime",
+    tab === "upcoming" ? "asc" : "desc"
+  ).slice(0, 60);
 
-  const tabLink = (k: string, label: string) => (
-    <Link href={`?tab=${k}${all ? "&scope=club" : ""}`}
-      className={`rounded-lg px-4 py-2 text-sm font-semibold ${tab === k ? "bg-white text-primary-400 shadow-soft" : "text-slate-500"}`}>{label}</Link>
-  );
+  // Indicateurs (sur le même périmètre : les miennes / tout le club)
+  const upcomingCount = scoped.filter((r) => r.endTime >= now && r.status !== "CANCELLED").length;
+  const toPay = scoped.filter((r) => r.status === "PENDING_PAYMENT" && r.endTime >= now).length;
+  const playedHours = scoped
+    .filter((r) => r.status === "CONFIRMED" && r.endTime < now)
+    .reduce((h, r) => h + (r.endTime.getTime() - r.startTime.getTime()) / 3600000, 0);
+
+  const club = all ? "&scope=club" : "";
 
   return (
     <div>
       <PageHeader title="Réservations" subtitle={all ? "Toutes les réservations du club" : "Vos créneaux sur les courts du club"}
-        action={<Link href="/dashboard/reservations/new" className="btn-accent"><Plus size={16} /> Nouvelle réservation</Link>} />
+        action={<Link href="/dashboard/reservations/new" className="btn-primary"><Plus size={16} /> Nouvelle réservation</Link>} />
 
-      <div className="mb-5 flex flex-wrap items-center gap-3">
-        <div className="inline-flex rounded-xl bg-slate-100 p-1">{tabLink("upcoming", "À venir")}{tabLink("past", "Passées")}</div>
-        {staff && (
-          <div className="inline-flex rounded-xl bg-slate-100 p-1">
-            <Link href={`?tab=${tab}`} className={`rounded-lg px-4 py-2 text-sm font-semibold ${!all ? "bg-white text-primary-400 shadow-soft" : "text-slate-500"}`}>Les miennes</Link>
-            <Link href={`?tab=${tab}&scope=club`} className={`rounded-lg px-4 py-2 text-sm font-semibold ${all ? "bg-white text-primary-400 shadow-soft" : "text-slate-500"}`}>Tout le club</Link>
-          </div>
-        )}
+      <div className="mb-8 grid gap-4 sm:grid-cols-3">
+        <StatCard label="À venir" value={String(upcomingCount)} icon={CalendarDays} tone="navy" hint={all ? "Sur tous les courts" : "Créneaux réservés"} />
+        <StatCard label="En attente de paiement" value={String(toPay)} icon={Clock} tone="clay" hint="À régler pour confirmer" />
+        <StatCard label="Heures jouées" value={`${playedHours.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} h`} icon={Timer} tone="lime" />
       </div>
 
-      {list.length === 0 ? (
-        <Empty>Aucune réservation. <Link href="/dashboard/reservations/new" className="font-semibold text-primary-400 underline">Réserver un court</Link></Empty>
-      ) : (
-        <div className="card overflow-x-auto">
-          <table className="table-base">
-            <thead>
-              <tr><th>Court</th><th>Date</th><th>Horaire</th>{all && <th>Membre</th>}<th>Coach</th><th>Montant</th><th>Statut</th><th></th></tr>
-            </thead>
-            <tbody>
-              {list.map((r) => (
-                <tr key={r.id}>
-                  <td>
-                    <div className="flex items-center gap-3">
-                      <img src={r.court.image ?? ""} alt="" className="h-9 w-14 rounded-md object-cover" />
-                      <div><p className="font-semibold text-primary-400">{r.court.name}</p><p className="text-xs text-slate-400">{r.court.surface}</p></div>
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap">{dateFr(r.startTime, { weekday: "short", day: "numeric", month: "short" })}</td>
-                  <td className="whitespace-nowrap">{timeFr(r.startTime)} – {timeFr(r.endTime)}</td>
-                  {all && <td>{r.user.firstName} {r.user.lastName}</td>}
-                  <td>{r.coach ? `${r.coach.firstName} ${r.coach.lastName}` : <span className="text-slate-400">—</span>}</td>
-                  <td className="whitespace-nowrap font-semibold">{xof(r.price)}</td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td className="text-right">
-                    {r.status === "PENDING_PAYMENT" && r.userId === s.userId && <PayLink id={r.id} />}
-                    {tab === "upcoming" && r.status !== "CANCELLED" && (staff || r.startTime.getTime() - now.getTime() > 24 * 3600000) && <CancelButton url={`/api/reservations/${r.id}`} />}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <section className="card overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/[0.06] p-5 md:p-6">
+          <div>
+            <h2 className="font-display text-xl font-black tracking-tight text-ink">{tab === "upcoming" ? "Créneaux à venir" : "Créneaux passés"}</h2>
+            <p className="text-sm text-muted">{list.length} réservation{list.length > 1 ? "s" : ""}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <SegLinks label="Période" items={[
+              { href: `?tab=upcoming${club}`, label: "À venir", active: tab === "upcoming" },
+              { href: `?tab=past${club}`, label: "Passées", active: tab !== "upcoming" },
+            ]} />
+            {staff && (
+              <SegLinks label="Périmètre" items={[
+                { href: `?tab=${tab}`, label: "Les miennes", active: !all },
+                { href: `?tab=${tab}&scope=club`, label: "Tout le club", active: all },
+              ]} />
+            )}
+          </div>
         </div>
-      )}
+
+        {list.length === 0 ? (
+          <div className="p-12 text-center text-muted">
+            Aucune réservation. <Link href="/dashboard/reservations/new" className="font-semibold text-brand underline">Réserver un court</Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table-base">
+              <thead>
+                <tr><th>Court</th><th>Date</th><th>Horaire</th>{all && <th>Membre</th>}<th>Coach</th><th>Montant</th><th>Statut</th><th><span className="sr-only">Actions</span></th></tr>
+              </thead>
+              <tbody>
+                {list.map((r) => (
+                  <tr key={r.id} className="transition-colors hover:bg-mist/60">
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <img src={r.court.image ?? ""} alt="" className="h-10 w-16 shrink-0 rounded-xl object-cover" />
+                        <div><p className="whitespace-nowrap font-bold text-ink">{r.court.name}</p><p className="text-xs text-muted">{r.court.surface}</p></div>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap capitalize">{dateFr(r.startTime, { weekday: "short", day: "numeric", month: "short" })}</td>
+                    <td className="tabular whitespace-nowrap">{timeFr(r.startTime)} – {timeFr(r.endTime)}</td>
+                    {all && <td className="whitespace-nowrap">{r.user.firstName} {r.user.lastName}</td>}
+                    <td className="whitespace-nowrap">{r.coach ? `${r.coach.firstName} ${r.coach.lastName}` : <span className="text-ink/35">—</span>}</td>
+                    <td className="tabular whitespace-nowrap font-bold text-ink">{xof(r.price)}</td>
+                    <td><StatusBadge status={r.status} /></td>
+                    <td className="text-right">
+                      <div className="flex flex-col items-end gap-1.5">
+                        {r.status === "PENDING_PAYMENT" && r.userId === s.userId && <PayLink id={r.id} />}
+                        {tab === "upcoming" && r.status !== "CANCELLED" && (staff || r.startTime.getTime() - now.getTime() > 24 * 3600000) && <CancelButton url={`/api/reservations/${r.id}`} />}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
 
-async function PayLink({ id }: { id: string }) {
-  const tx = await db.query.transactions.findFirst({ where: and(eq(t.transactions.relatedId, id), eq(t.transactions.status, "PENDING")) });
+function PayLink({ id }: { id: string }) {
+  const tx = db.transactions.find((t) => t.relatedId === id && t.status === "PENDING");
   if (!tx) return null;
-  return <Link href={`/dashboard/payments/${tx.id}`} className="mb-1 block text-xs font-semibold text-primary-400 underline">Payer</Link>;
+  return <Link href={`/dashboard/payments/${tx.id}`} className="btn-primary btn-sm !px-3 !py-1.5">Payer</Link>;
 }

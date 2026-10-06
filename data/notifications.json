@@ -1,0 +1,112 @@
+[
+  {
+    "id": "85125a6b-7a52-49c6-b582-f99283c0a873",
+    "userId": "61aa11a6-1106-434a-804a-82cfe4a93734",
+    "type": "RESERVATION_CONFIRMED",
+    "title": "Réservation confirmée",
+    "message": "Court 1 demain de 18:00 à 20:00.",
+    "link": "/dashboard/reservations",
+    "read": false,
+    "createdAt": "2026-10-06T12:00:00.000Z"
+  },
+  {
+    "id": "812e739d-d8ef-4c27-bbd6-2ea88bdf0b66",
+    "userId": "61aa11a6-1106-434a-804a-82cfe4a93734",
+    "type": "STRINGING_UPDATE",
+    "title": "Cordage en cours",
+    "message": "Votre Wilson Pro Staff 97 est entre les mains de notre cordeur.",
+    "link": "/dashboard/stringing",
+    "read": false,
+    "createdAt": "2026-10-06T11:00:00.000Z"
+  },
+  {
+    "id": "78275f09-048f-4409-b6f9-3b4740c91cd4",
+    "userId": "61aa11a6-1106-434a-804a-82cfe4a93734",
+    "type": "ORDER_CONFIRMED",
+    "title": "Commande expédiée",
+    "message": "Votre polo et votre casquette sont en route.",
+    "link": "/dashboard/shop/orders",
+    "read": false,
+    "createdAt": "2026-10-05T19:00:00.000Z"
+  },
+  {
+    "id": "50ecb92c-454d-4f66-933d-2a1e57a3b904",
+    "userId": "61aa11a6-1106-434a-804a-82cfe4a93734",
+    "type": "EVENT_REGISTERED",
+    "title": "Inscription confirmée",
+    "message": "Vous êtes inscrit(e) à l'Open de Cotonou 2026.",
+    "link": "/dashboard/events",
+    "read": true,
+    "createdAt": "2026-10-03T15:00:00.000Z"
+  },
+  {
+    "id": "cfa76061-b89d-4caf-a2f6-3a8698f7b362",
+    "userId": "61aa11a6-1106-434a-804a-82cfe4a93734",
+    "type": "PAYMENT_CONFIRMED",
+    "title": "Merci pour votre don !",
+    "message": "Votre don de 50 000 XOF pour l'éclairage LED a bien été reçu.",
+    "link": "/dashboard/fundraising",
+    "read": true,
+    "createdAt": "2026-09-30T13:00:00.000Z"
+  },
+  {
+    "id": "d59e6020-c6bc-4895-ae8c-14a04d6d9740",
+    "userId": "b783333f-b919-42e2-ab30-496f2782f4fe",
+    "type": "ORDER_CONFIRMED",
+    "title": "Commande expédiée",
+    "message": "Votre polo et votre casquette sont en route.",
+    "link": "/dashboard/shop/orders",
+    "read": false,
+    "createdAt": "2026-10-05T19:00:00.000Z"
+  },
+  {
+    "id": "b2e1ee6e-a2b7-4e7a-ac79-5c789864bc0a",
+    "userId": "b783333f-b919-42e2-ab30-496f2782f4fe",
+    "type": "EVENT_REGISTERED",
+    "title": "Inscription confirmée",
+    "message": "Vous êtes inscrit(e) à l'Open de Cotonou 2026.",
+    "link": "/dashboard/events",
+    "read": true,
+    "createdAt": "2026-10-03T15:00:00.000Z"
+  },
+  {
+    "id": "9a1b6bde-a6c9-4689-b2ac-05eaa3d19bf3",
+    "userId": "b783333f-b919-42e2-ab30-496f2782f4fe",
+    "type": "PAYMENT_CONFIRMED",
+    "title": "Merci pour votre don !",
+    "message": "Votre don de 50 000 XOF pour l'éclairage LED a bien été reçu.",
+    "link": "/dashboard/fundraising",
+    "read": true,
+    "createdAt": "2026-09-30T13:00:00.000Z"
+  },
+  {
+    "id": "f5887098-86da-449b-b173-812e43f2f48a",
+    "userId": "447baaec-2708-46a1-a4fd-a31a9daa0d81",
+    "type": "ORDER_CONFIRMED",
+    "title": "Commande expédiée",
+    "message": "Votre polo et votre casquette sont en route.",
+    "link": "/dashboard/shop/orders",
+    "read": false,
+    "createdAt": "2026-10-05T19:00:00.000Z"
+  },
+  {
+    "id": "d74bf9f2-4fb8-4a3d-a1e8-86b132250606",
+    "userId": "447baaec-2708-46a1-a4fd-a31a9daa0d81",
+    "type": "EVENT_REGISTERED",
+    "title": "Inscription confirmée",
+    "message": "Vous êtes inscrit(e) à l'Open de Cotonou 2026.",
+    "link": "/dashboard/events",
+    "read": true,
+    "createdAt": "2026-10-03T15:00:00.000Z"
+  },
+  {
+    "id": "9b6297aa-f9c9-483a-85d5-00fb390d6f76",
+    "userId": "447baaec-2708-46a1-a4fd-a31a9daa0d81",
+    "type": "PAYMENT_CONFIRMED",
+    "title": "Merci pour votre don !",
+    "message": "Votre don de 50 000 XOF pour l'éclairage LED a bien été reçu.",
+    "link": "/dashboard/fundraising",
+    "read": true,
+    "createdAt": "2026-09-30T13:00:00.000Z"
+  }
+]

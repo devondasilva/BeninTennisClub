@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession, logAction } from "@/lib/auth";
 import { parse } from "@/lib/api";
 import { storeImage } from "@/lib/uploads";
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   if (e2) return e2;
   const startDate = new Date(data.startDate), endDate = new Date(data.endDate);
   if (endDate < startDate) return NextResponse.json({ message: "La fin doit être après le début" }, { status: 400 });
-  const [event] = await db.insert(t.events).values({ ...data, startDate, endDate, image: (await storeImage(data.image)) || IMAGES[data.type] }).returning();
+  const event = db.events.insert({ ...data, startDate, endDate, image: (await storeImage(data.image)) || IMAGES[data.type] });
   await logAction(session, "Événement créé", event.title);
   return NextResponse.json({ event }, { status: 201 });
 }

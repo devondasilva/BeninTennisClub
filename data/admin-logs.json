@@ -1,0 +1,42 @@
+[
+  {
+    "id": "516178af-79af-4b41-9a9c-9216e58c8c43",
+    "userId": "b783333f-b919-42e2-ab30-496f2782f4fe",
+    "userName": "Rodrigue Houngbédji",
+    "action": "Rôle et accès modifiés",
+    "target": "Awa Sossou : Adhérent + Boutique : articles, Commandes",
+    "createdAt": "2026-08-27T14:00:00.000Z"
+  },
+  {
+    "id": "d6fd018a-edd8-46fe-971f-4cf12247b98d",
+    "userId": "447baaec-2708-46a1-a4fd-a31a9daa0d81",
+    "userName": "Carine Adjovi",
+    "action": "Partenaire ajouté",
+    "target": "Dodomey Sport & Nutrition",
+    "createdAt": "2026-09-06T13:00:00.000Z"
+  },
+  {
+    "id": "bcb4200d-6e94-4326-a2bc-65411d81c3ac",
+    "userId": "447baaec-2708-46a1-a4fd-a31a9daa0d81",
+    "userName": "Carine Adjovi",
+    "action": "Événement créé",
+    "target": "Open de Cotonou 2026",
+    "createdAt": "2026-09-16T19:00:00.000Z"
+  },
+  {
+    "id": "70d825db-1adb-4d75-81c3-422d326651f5",
+    "userId": "b783333f-b919-42e2-ab30-496f2782f4fe",
+    "userName": "Rodrigue Houngbédji",
+    "action": "Court modifié",
+    "target": "Court 3 (prix 5000 → 6000 XOF / 30 min)",
+    "createdAt": "2026-09-24T15:00:00.000Z"
+  },
+  {
+    "id": "7e293fc8-6e2b-4c8c-978c-104aef01e217",
+    "userId": "447baaec-2708-46a1-a4fd-a31a9daa0d81",
+    "userName": "Carine Adjovi",
+    "action": "Commissions réglées",
+    "target": "18 commission(s)",
+    "createdAt": "2026-09-22T21:00:00.000Z"
+  }
+]

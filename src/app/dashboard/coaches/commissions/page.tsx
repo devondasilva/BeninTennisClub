@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { and, desc, eq, lt, sql } from "drizzle-orm";
 import { Wallet, Clock, CheckCircle2, BadgeCheck } from "lucide-react";
-import { db, t } from "@/db";
+import { db } from "@/db";
+import { indexById, sortBy } from "@/db/relations";
 import { requireSession } from "@/lib/auth";
 import { dateFr, timeFr, xof } from "@/lib/format";
 import { PageHeader, StatCard } from "@/components/ui";
+import { SegLinks } from "../../_member/ui";
 import CommissionTable from "./CommissionTable";
 
 export const metadata = { title: "Commissions des coachs" };
@@ -16,25 +16,28 @@ export default async function CommissionsPage({ searchParams }: { searchParams: 
   const { coach: coachFilter, status } = await searchParams;
 
   // Les séances passées deviennent « terminées » (à payer)
-  await db.update(t.commissions).set({ status: "COMPLETED" }).where(and(eq(t.commissions.status, "PENDING"), lt(t.commissions.sessionDate, new Date())));
+  const now = new Date();
+  db.commissions.updateWhere((c) => c.status === "PENDING" && c.sessionDate < now, { status: "COMPLETED" });
 
   let coachId = coachFilter;
   if (!s.can("commissions.manage")) {
-    const me = await db.query.coaches.findFirst({ where: eq(t.coaches.userId, s.userId) });
+    const me = db.coaches.find((c) => c.userId === s.userId);
     coachId = me?.id ?? "none";
   }
-  const coaches = await db.query.coaches.findMany();
-  const where = and(coachId ? eq(t.commissions.coachId, coachId) : undefined, status ? eq(t.commissions.status, status) : undefined);
-  const list = await db.query.commissions.findMany({ where, with: { coach: true }, orderBy: desc(t.commissions.sessionDate), limit: 200 });
-  const sums = await db.select({ status: t.commissions.status, v: sql<number>`sum(${t.commissions.amount})` }).from(t.commissions)
-    .where(coachId ? eq(t.commissions.coachId, coachId) : undefined).groupBy(t.commissions.status);
-  const sum = (k: string) => sums.find((x) => x.status === k)?.v ?? 0;
+  const coaches = db.coaches.all();
+  const byId = indexById(coaches);
+  const scoped = db.commissions.filter((c) => !coachId || c.coachId === coachId);
+  const list = sortBy(scoped.filter((c) => (!status || c.status === status) && byId.has(c.coachId)), "sessionDate", "desc").slice(0, 200);
+  const sum = (k: string) => scoped.filter((c) => c.status === k).reduce((t, c) => t + c.amount, 0);
 
-  const rows = list.map((c) => ({
-    id: c.id, coach: `${c.coach.firstName} ${c.coach.lastName}`, client: c.clientName,
-    date: `${dateFr(c.sessionDate, { day: "numeric", month: "short" })} · ${timeFr(c.sessionDate)}`,
-    base: c.baseAmount, rate: c.rate, amount: c.amount, status: c.status, paidAt: c.paidAt ? dateFr(c.paidAt, { day: "numeric", month: "short" }) : null,
-  }));
+  const rows = list.map((c) => {
+    const coach = byId.get(c.coachId)!;
+    return {
+      id: c.id, coach: `${coach.firstName} ${coach.lastName}`, client: c.clientName,
+      date: `${dateFr(c.sessionDate, { day: "numeric", month: "short" })} · ${timeFr(c.sessionDate)}`,
+      base: c.baseAmount, rate: c.rate, amount: c.amount, status: c.status, paidAt: c.paidAt ? dateFr(c.paidAt, { day: "numeric", month: "short" }) : null,
+    };
+  });
 
   const qs = (k: string, v?: string) => {
     const p = new URLSearchParams();
@@ -46,26 +49,23 @@ export default async function CommissionsPage({ searchParams }: { searchParams: 
 
   return (
     <div>
-      <PageHeader title="Commissions des coachs" subtitle={s.role === "COACH" ? "Vos revenus sur les cours donnés au club" : "Suivi et règlement des commissions"} />
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <PageHeader eyebrow={s.role === "COACH" ? "Espace coach" : "Gestion du club"} title="Commissions des coachs" subtitle={s.role === "COACH" ? "Vos revenus sur les cours donnés au club" : "Suivi et règlement des commissions"} />
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total généré" value={xof(sum("PENDING") + sum("COMPLETED") + sum("PAID"))} icon={Wallet} tone="navy" />
         <StatCard label="À venir (séances planifiées)" value={xof(sum("PENDING"))} icon={Clock} tone="sky" />
         <StatCard label="À payer" value={xof(sum("COMPLETED"))} icon={CheckCircle2} tone="clay" />
         <StatCard label="Déjà payé" value={xof(sum("PAID"))} icon={BadgeCheck} tone="lime" />
       </div>
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-5 flex flex-wrap items-center gap-3">
         {s.can("commissions.manage") && (
-          <>
-            <Link href={qs("coach")} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${!coachFilter ? "bg-primary-400 text-white" : "bg-white text-slate-600 shadow-soft"}`}>Tous les coachs</Link>
-            {coaches.map((c) => (
-              <Link key={c.id} href={qs("coach", c.id)} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${coachFilter === c.id ? "bg-primary-400 text-white" : "bg-white text-slate-600 shadow-soft"}`}>{c.firstName}</Link>
-            ))}
-            <span className="mx-1 w-px bg-slate-200" />
-          </>
+          <SegLinks label="Filtrer par coach" items={[
+            { href: qs("coach"), label: "Tous les coachs", active: !coachFilter },
+            ...coaches.map((c) => ({ href: qs("coach", c.id), label: c.firstName, active: coachFilter === c.id })),
+          ]} />
         )}
-        {[["", "Tous statuts"], ["PENDING", "À venir"], ["COMPLETED", "À payer"], ["PAID", "Payées"]].map(([k, l]) => (
-          <Link key={k} href={qs("status", k)} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${(status ?? "") === k ? "bg-accent-400 text-primary-400" : "bg-white text-slate-600 shadow-soft"}`}>{l}</Link>
-        ))}
+        <SegLinks label="Filtrer par statut" items={[["", "Tous statuts"], ["PENDING", "À venir"], ["COMPLETED", "À payer"], ["PAID", "Payées"]].map(([k, l]) => ({
+          href: qs("status", k), label: l, active: (status ?? "") === k,
+        }))} />
       </div>
       <CommissionTable rows={rows} canPay={s.can("commissions.manage")} />
     </div>

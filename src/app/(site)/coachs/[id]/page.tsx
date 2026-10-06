@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, desc, eq, ne } from "drizzle-orm";
-import { ArrowLeft, Award, Languages, GraduationCap, Trophy, CalendarDays, MessageSquare, Clock, Wallet } from "lucide-react";
-import { db, t } from "@/db";
+import { ArrowLeft, Award, Languages, GraduationCap, Trophy, CalendarDays, MessageSquare, Clock, Wallet, ChevronRight } from "lucide-react";
+import { db } from "@/db";
+import { indexById, sortBy } from "@/db/relations";
 import { getSession } from "@/lib/auth";
 import { relativeFr, xof } from "@/lib/format";
 import { DAYS, lines, parseAvailability } from "@/lib/coaches";
@@ -10,22 +10,25 @@ import Avatar from "@/components/Avatar";
 import Stars from "@/components/Stars";
 import ReviewForm from "./ReviewForm";
 import AdSlot from "@/components/AdSlot";
+import { PageBody } from "@/components/site/PageHero";
+import { Reveal } from "@/components/motion/Reveal";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const c = await db.query.coaches.findFirst({ where: eq(t.coaches.id, (await params).id) });
+  const c = db.coaches.get((await params).id);
   return { title: c ? `${c.firstName} ${c.lastName} — Coach` : "Coach" };
 }
 
 export default async function CoachProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getSession();
-  const c = await db.query.coaches.findFirst({ where: eq(t.coaches.id, id) });
+  const c = db.coaches.get(id);
   if (!c) notFound();
 
-  const [reviews, others] = await Promise.all([
-    db.query.coachReviews.findMany({ where: eq(t.coachReviews.coachId, id), with: { user: true }, orderBy: desc(t.coachReviews.createdAt) }),
-    db.query.coaches.findMany({ where: and(ne(t.coaches.id, id), eq(t.coaches.status, "ACTIVE")), limit: 3 }),
-  ]);
+  const users = indexById(db.users.all());
+  const reviews = sortBy(db.coachReviews.filter((r) => r.coachId === id), "createdAt", "desc")
+    .filter((r) => users.has(r.userId))
+    .map((r) => ({ ...r, user: users.get(r.userId)! }));
+  const others = db.coaches.filter((o) => o.id !== id && o.status === "ACTIVE").slice(0, 3);
   const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
   const mine = session ? reviews.find((r) => r.userId === session.userId) : undefined;
   const slots = parseAvailability(c.availability);
@@ -33,124 +36,154 @@ export default async function CoachProfilePage({ params }: { params: Promise<{ i
   const achievements = lines(c.achievements);
   const isSelf = session && c.userId === session.userId;
   const bookHref = `/dashboard/reservations/new?coach=${c.id}`;
+  const facts = [
+    { icon: Award, v: `${c.experience} ans`, l: "d'expérience" },
+    { icon: Wallet, v: xof(c.hourlyRate), l: "de l'heure" },
+    { icon: Languages, v: (c.languages ?? "Français").split(",").length + " langues", l: c.languages ?? "Français" },
+  ];
 
   return (
     <>
-      {/* En-tête profil */}
-      <section className="bg-primary-400">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 md:grid-cols-[320px_1fr] md:px-8 md:py-16">
-          <img src={c.photo ?? ""} alt={`${c.firstName} ${c.lastName}`} className="aspect-square w-full max-w-xs rounded-3xl object-cover shadow-medium ring-4 ring-accent-400" />
-          <div>
-            <Link href="/coachs" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-slate-300 hover:text-white"><ArrowLeft size={16} /> Tous les coachs</Link>
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-accent-400">{c.specialization}</p>
-            <h1 className="mt-2 text-4xl font-extrabold text-white md:text-5xl">{c.firstName} {c.lastName}</h1>
-            <div className="mt-3 flex items-center gap-2 text-slate-300">
+      {/* En-tête profil — même langage que les bandeaux des pages */}
+      <section className="relative overflow-hidden bg-ink pb-24 pt-14 text-white md:pb-28 md:pt-20">
+        <div className="absolute inset-0 opacity-25"><img src="/images/hero-graphic.svg" alt="" className="h-full w-full object-cover" /></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/90 to-ink/60" />
+        <div className="court-lines-dark pointer-events-none absolute inset-0 opacity-40" aria-hidden />
+        <div aria-hidden className="absolute -right-32 -top-40 h-[30rem] w-[30rem] rounded-full bg-lime/15 blur-3xl" />
+        <div className="relative z-10 mx-auto grid max-w-content items-center gap-10 px-6 md:grid-cols-[300px_1fr] lg:gap-14">
+          <Reveal y={20}>
+            <div className="relative mx-auto w-full max-w-[300px]">
+              <div aria-hidden className="absolute -inset-3 rotate-3 rounded-[2.5rem] bg-lime/80" />
+              <img src={c.photo ?? ""} alt={`${c.firstName} ${c.lastName}`} className="relative aspect-square w-full rounded-[2rem] object-cover shadow-2xl" />
+            </div>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <Link href="/coachs" className="mb-5 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-white/60 transition-colors hover:text-lime"><ArrowLeft size={15} /> Tous les coachs</Link>
+            <div className="mb-5 flex w-fit items-center gap-2 rounded-full border border-lime/30 bg-lime/10 px-4 py-2 backdrop-blur-md">
+              <GraduationCap size={15} className="text-lime" />
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-lime">{c.specialization}</span>
+            </div>
+            <h1 className="font-display text-4xl font-black leading-[1.04] tracking-tight text-white sm:text-5xl md:text-6xl">
+              {c.firstName} <span className="text-lime">{c.lastName}</span>
+            </h1>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-white/75">
               <Stars value={avg} /> <span>{reviews.length ? `${avg.toFixed(1)} / 5 · ${reviews.length} avis` : "Pas encore d'avis"}</span>
             </div>
-            <dl className="mt-8 grid max-w-xl grid-cols-3 gap-4">
-              {[[Award, `${c.experience} ans`, "d'expérience"], [Wallet, xof(c.hourlyRate), "de l'heure"], [Languages, (c.languages ?? "Français").split(",").length + " langues", c.languages ?? "Français"]].map(([Icon, v, l]) => {
-                const I = Icon as typeof Award;
-                return (
-                  <div key={l as string} className="rounded-2xl bg-white/10 p-4">
-                    <I size={18} className="text-accent-400" />
-                    <dt className="mt-2 text-lg font-bold text-white">{v as string}</dt>
-                    <dd className="truncate text-xs text-slate-400" title={l as string}>{l as string}</dd>
-                  </div>
-                );
-              })}
+            <dl className="mt-8 grid max-w-xl grid-cols-3 gap-3">
+              {facts.map(({ icon: I, v, l }) => (
+                <div key={l} className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.07] p-4 backdrop-blur-md">
+                  <I size={18} className="text-lime" />
+                  <dt className="mt-2 truncate font-display text-lg font-black text-white">{v}</dt>
+                  <dd className="truncate text-xs text-white/55" title={l}>{l}</dd>
+                </div>
+              ))}
             </dl>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href={bookHref} className="btn-accent px-6 py-3 text-base"><CalendarDays size={18} /> Réserver un cours avec {c.firstName}</Link>
-              {isSelf && <Link href="/dashboard/settings#coach" className="btn border border-white/25 px-6 py-3 text-base text-white hover:bg-white/10">Modifier ma fiche</Link>}
+              <Link href={bookHref} className="btn-accent"><CalendarDays size={18} /> Réserver un cours avec {c.firstName}</Link>
+              {isSelf && <Link href="/dashboard/settings#coach" className="btn-ghost-dark">Modifier ma fiche</Link>}
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-8 px-4 py-14 md:px-8 lg:grid-cols-3">
+      <PageBody className="grid gap-8 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">
-          <div>
-            <h2 className="text-2xl font-bold text-primary-400">À propos</h2>
-            <p className="mt-3 text-lg leading-relaxed text-slate-600">{c.bio}</p>
-          </div>
+          <Reveal className="card p-7 md:p-9">
+            <p className="eyebrow">Le coach</p>
+            <h2 className="section-title mt-2">À propos</h2>
+            <p className="mt-4 text-lg leading-relaxed text-muted">{c.bio}</p>
+          </Reveal>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-2xl border border-slate-100 p-6 shadow-soft">
-              <h3 className="flex items-center gap-2 font-bold text-primary-400"><GraduationCap size={20} /> Diplômes & certifications</h3>
-              <ul className="mt-4 space-y-2.5">
+            <Reveal className="card p-7">
+              <h3 className="flex items-center gap-3 font-display text-xl font-black text-ink">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand"><GraduationCap size={20} /></span>
+                Diplômes & certifications
+              </h3>
+              <ul className="mt-5 space-y-3">
                 {diplomas.length ? diplomas.map((d) => (
-                  <li key={d} className="flex gap-2.5 text-sm text-slate-600"><span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent-500" />{d}</li>
-                )) : <li className="text-sm text-slate-400">Non renseigné</li>}
+                  <li key={d} className="flex gap-3 text-sm text-ink/80"><span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-lime-dark" />{d}</li>
+                )) : <li className="text-sm text-muted">Non renseigné</li>}
               </ul>
-            </div>
-            <div className="rounded-2xl border border-slate-100 p-6 shadow-soft">
-              <h3 className="flex items-center gap-2 font-bold text-primary-400"><Trophy size={20} /> Palmarès & réalisations</h3>
-              <ul className="mt-4 space-y-2.5">
+            </Reveal>
+            <Reveal className="card p-7" delay={0.08}>
+              <h3 className="flex items-center gap-3 font-display text-xl font-black text-ink">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-lime-light text-ink"><Trophy size={20} /></span>
+                Palmarès & réalisations
+              </h3>
+              <ul className="mt-5 space-y-3">
                 {achievements.length ? achievements.map((a) => (
-                  <li key={a} className="flex gap-2.5 text-sm text-slate-600"><span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary-400" />{a}</li>
-                )) : <li className="text-sm text-slate-400">Non renseigné</li>}
+                  <li key={a} className="flex gap-3 text-sm text-ink/80"><span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand" />{a}</li>
+                )) : <li className="text-sm text-muted">Non renseigné</li>}
               </ul>
-            </div>
+            </Reveal>
           </div>
 
           {/* Avis */}
-          <div>
-            <h2 className="flex items-center gap-2 text-2xl font-bold text-primary-400"><MessageSquare size={22} /> Avis des membres</h2>
-            <div className="mt-4">
+          <Reveal className="card p-7 md:p-9">
+            <p className="eyebrow">Ils s'entraînent avec {c.firstName}</p>
+            <h2 className="section-title mt-2 flex items-center gap-3"><MessageSquare size={26} className="text-brand" /> Avis des membres</h2>
+            <div className="mt-6">
               {session && !isSelf ? (
                 <ReviewForm coachId={c.id} existing={mine ? { rating: mine.rating, comment: mine.comment } : undefined} />
               ) : !session ? (
-                <p className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-600">
-                  <Link href={`/login?next=/coachs/${c.id}`} className="font-semibold text-primary-400 underline">Connectez-vous</Link> pour laisser un avis.
+                <p className="rounded-2xl bg-mist p-5 text-sm text-muted">
+                  <Link href={`/login?next=/coachs/${c.id}`} className="font-bold text-brand underline decoration-2 underline-offset-4">Connectez-vous</Link> pour laisser un avis.
                 </p>
               ) : null}
             </div>
-            <ul className="mt-6 divide-y divide-slate-100">
+            <ul className="mt-6 divide-y divide-ink/[0.06]">
               {reviews.map((r) => (
                 <li key={r.id} className="flex gap-4 py-5">
                   <Avatar src={r.user.avatar} name={`${r.user.firstName} ${r.user.lastName}`} size={44} />
-                  <div className="flex-1">
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="font-semibold text-slate-800">{r.user.firstName} {r.user.lastName[0]}.</p>
-                      <span className="text-xs text-slate-400">{relativeFr(r.createdAt)}</span>
+                      <p className="font-semibold text-ink">{r.user.firstName} {r.user.lastName[0]}.</p>
+                      <span className="text-xs text-muted">{relativeFr(r.createdAt)}</span>
                     </div>
                     <Stars value={r.rating} size={14} />
-                    <p className="mt-1.5 text-slate-600">{r.comment}</p>
+                    <p className="mt-1.5 leading-relaxed text-ink/75">{r.comment}</p>
                   </div>
                 </li>
               ))}
-              {reviews.length === 0 && <li className="py-6 text-slate-500">Soyez le premier à donner votre avis.</li>}
+              {reviews.length === 0 && <li className="py-6 text-muted">Soyez le premier à donner votre avis.</li>}
             </ul>
-          </div>
+          </Reveal>
         </div>
 
         {/* Colonne latérale */}
         <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl border border-slate-100 p-6 shadow-soft">
-            <h3 className="flex items-center gap-2 font-bold text-primary-400"><Clock size={20} /> Disponibilités</h3>
-            <ul className="mt-4 divide-y divide-slate-100 text-sm">
-              {DAYS.map((d) => {
-                const s = slots.filter((x) => x.day === d);
-                return (
-                  <li key={d} className="flex justify-between py-2.5">
-                    <span className="font-medium text-slate-700">{d}</span>
-                    <span className={s.length ? "font-semibold text-primary-400" : "text-slate-300"}>{s.length ? s.map((x) => x.hours).join(", ") : "—"}</span>
-                  </li>
-                );
-              })}
-            </ul>
-            <Link href={bookHref} className="btn-accent mt-5 w-full">Réserver un créneau</Link>
+          <div className="relative overflow-hidden rounded-[2rem] bg-ink p-7 text-white shadow-xl shadow-ink/20">
+            <div className="court-lines-dark pointer-events-none absolute inset-0 opacity-30" aria-hidden />
+            <div aria-hidden className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-lime/15 blur-3xl" />
+            <div className="relative">
+              <h3 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.25em] text-lime"><Clock size={16} /> Disponibilités</h3>
+              <ul className="mt-4 divide-y divide-white/10 text-sm">
+                {DAYS.map((d) => {
+                  const s = slots.filter((x) => x.day === d);
+                  return (
+                    <li key={d} className="flex justify-between gap-3 py-2.5">
+                      <span className="font-medium text-white/75">{d}</span>
+                      <span className={s.length ? "text-right font-semibold text-white" : "text-white/30"}>{s.length ? s.map((x) => x.hours).join(", ") : "—"}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <Link href={bookHref} className="btn-accent mt-6 w-full">Réserver un créneau</Link>
+            </div>
           </div>
           <AdSlot placement="COACHES" variant="compact" />
           {others.length > 0 && (
-            <div className="rounded-2xl bg-slate-50 p-6">
-              <h3 className="font-bold text-primary-400">Autres coachs</h3>
-              <ul className="mt-4 space-y-3">
+            <div className="card p-6">
+              <p className="eyebrow">L'équipe</p>
+              <h3 className="mt-1 font-display text-xl font-black text-ink">Autres coachs</h3>
+              <ul className="mt-4 space-y-2">
                 {others.map((o) => (
                   <li key={o.id}>
-                    <Link href={`/coachs/${o.id}`} className="flex items-center gap-3 rounded-xl p-1.5 hover:bg-white">
-                      <img src={o.photo ?? ""} alt="" className="h-12 w-12 rounded-xl object-cover" />
-                      <div><p className="text-sm font-semibold text-primary-400">{o.firstName} {o.lastName}</p><p className="text-xs text-slate-500">{o.specialization}</p></div>
+                    <Link href={`/coachs/${o.id}`} className="group flex items-center gap-3 rounded-2xl p-1.5 transition-colors hover:bg-mist">
+                      <img src={o.photo ?? ""} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
+                      <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink group-hover:text-brand">{o.firstName} {o.lastName}</p><p className="truncate text-xs text-muted">{o.specialization}</p></div>
+                      <ChevronRight size={15} className="shrink-0 text-ink/40 transition group-hover:translate-x-1 group-hover:text-brand" />
                     </Link>
                   </li>
                 ))}
@@ -158,7 +191,7 @@ export default async function CoachProfilePage({ params }: { params: Promise<{ i
             </div>
           )}
         </aside>
-      </section>
+      </PageBody>
     </>
   );
 }

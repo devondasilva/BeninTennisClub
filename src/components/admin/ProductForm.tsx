@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { xof } from "@/lib/format";
+import { choiceCls, stickyBar, switchCls, switchKnob } from "./kit";
 
 export type ProductFormData = { id?: string; name: string; description: string; category: string; price: number; stock: number; image: string | null; isActive: boolean };
 
@@ -35,40 +36,40 @@ export default function ProductForm({ initial }: { initial: ProductFormData }) {
 
   return (
     <form onSubmit={submit} className="space-y-6">
-      <div className="card grid gap-6 p-6 md:grid-cols-[260px_1fr]">
+      <div className="card grid gap-8 p-6 md:grid-cols-[260px_1fr] md:p-8">
         <ImageUpload label="Photo de l'article" hint="Recadrée au carré" value={f.image} onChange={(v) => set("image", v)} ratio={1} maxWidth={800} mode="cover" previewClass="aspect-square" />
-        <div className="space-y-4">
-          <div><label className="label">Nom de l'article</label><input className="input" value={f.name} onChange={(e) => set("name", e.target.value)} required placeholder="Ex. Raquette Junior 23&quot;" /></div>
+        <div className="space-y-5">
+          <div><label className="label" htmlFor="p-name">Nom de l'article</label><input id="p-name" className="input" value={f.name} onChange={(e) => set("name", e.target.value)} required placeholder="Ex. Raquette Junior 23&quot;" /></div>
           <div>
-            <label className="label">Catégorie</label>
+            <p className="label">Catégorie</p>
             <div className="flex flex-wrap gap-2">
               {CATS.map(([k, l]) => (
-                <button type="button" key={k} onClick={() => set("category", k)} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${f.category === k ? "bg-primary-400 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{l}</button>
+                <button type="button" key={k} aria-pressed={f.category === k} onClick={() => set("category", k)} className={choiceCls(f.category === k)}>{l}</button>
               ))}
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div><label className="label">Prix (XOF)</label><input className="input" type="number" min={100} step="any" value={f.price} onChange={(e) => set("price", Number(e.target.value))} required /><p className="mt-1 text-xs text-slate-400">Affiché : {xof(f.price || 0)}</p></div>
-            <div><label className="label">Stock disponible</label><input className="input" type="number" min={0} value={f.stock} onChange={(e) => set("stock", Number(e.target.value))} required />{f.stock <= 5 && <p className="mt-1 text-xs font-medium text-amber-700">Stock bas</p>}</div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div><label className="label" htmlFor="p-price">Prix (XOF)</label><input id="p-price" className="input" type="number" min={100} step="any" value={f.price} onChange={(e) => set("price", Number(e.target.value))} required /><p className="mt-1.5 text-xs text-muted">Affiché : <b className="text-ink">{xof(f.price || 0)}</b></p></div>
+            <div><label className="label" htmlFor="p-stock">Stock disponible</label><input id="p-stock" className="input" type="number" min={0} value={f.stock} onChange={(e) => set("stock", Number(e.target.value))} required />{f.stock <= 5 && <p className="mt-1.5 text-xs font-semibold text-amber-700">Stock bas</p>}</div>
           </div>
-          <div><label className="label">Description</label><textarea className="input" rows={4} value={f.description} onChange={(e) => set("description", e.target.value)} required /></div>
+          <div><label className="label" htmlFor="p-desc">Description</label><textarea id="p-desc" className="input" rows={4} value={f.description} onChange={(e) => set("description", e.target.value)} required /></div>
         </div>
       </div>
-      <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/95 p-3 shadow-medium backdrop-blur">
-        <div className="flex items-center gap-4">
-          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
-            <button type="button" role="switch" aria-checked={f.isActive} onClick={() => set("isActive", !f.isActive)} className={`relative h-6 w-11 rounded-full transition ${f.isActive ? "bg-accent-500" : "bg-slate-300"}`}>
-              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${f.isActive ? "left-[22px]" : "left-0.5"}`} />
+      <div className={stickyBar}>
+        <div className="flex flex-wrap items-center gap-4">
+          <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-ink">
+            <button type="button" role="switch" aria-checked={f.isActive} onClick={() => set("isActive", !f.isActive)} className={switchCls(f.isActive)}>
+              <span className={switchKnob(f.isActive)} />
             </button>
             {f.isActive ? "En vente" : "Retiré de la vente"}
           </label>
           {f.id && (confirm
-            ? <span className="text-sm"><span className="text-slate-500">Supprimer ?</span> <button type="button" onClick={remove} className="font-semibold text-red-600">Oui</button> · <button type="button" onClick={() => setConfirm(false)} className="text-slate-500">Non</button></span>
+            ? <span className="text-sm"><span className="text-muted">Supprimer ?</span> <button type="button" onClick={remove} className="font-semibold text-red-600">Oui</button> · <button type="button" onClick={() => setConfirm(false)} className="text-muted">Non</button></span>
             : <button type="button" onClick={() => setConfirm(true)} className="flex items-center gap-1 text-sm font-semibold text-red-600 hover:underline"><Trash2 size={14} /> Supprimer</button>)}
         </div>
         <div className="flex items-center gap-3">
-          {msg && <p className={`text-sm font-medium ${msg.ok ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>}
-          <button className="btn-accent" disabled={loading}>{loading && <Loader2 size={16} className="animate-spin" />} {f.id ? "Enregistrer" : "Ajouter l'article"}</button>
+          {msg && <p role="status" className={`text-sm font-semibold ${msg.ok ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>}
+          <button className="btn-primary" disabled={loading}>{loading && <Loader2 size={16} className="animate-spin" />} {f.id ? "Enregistrer" : "Ajouter l'article"}</button>
         </div>
       </div>
     </form>

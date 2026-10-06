@@ -1,7 +1,6 @@
-import { eq, inArray, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { createTransaction } from "@/lib/payments";
@@ -18,7 +17,8 @@ export async function POST(req: Request) {
   const { data, error: e2 } = await parse(req, schema);
   if (e2) return e2;
 
-  const products = await db.query.products.findMany({ where: inArray(t.products.id, data.items.map((i) => i.productId)) });
+  const ids = new Set(data.items.map((i) => i.productId));
+  const products = db.products.filter((p) => ids.has(p.id));
   let total = 0;
   for (const item of data.items) {
     const p = products.find((x) => x.id === item.productId);
@@ -29,11 +29,11 @@ export async function POST(req: Request) {
   const delivery = total >= 50000 ? 0 : 2000;
   total += delivery;
 
-  const [order] = await db.insert(t.orders).values({ userId: session.userId, totalAmount: total, shippingAddress: data.shippingAddress, phone: data.phone }).returning();
-  await db.insert(t.orderItems).values(data.items.map((i) => ({ orderId: order.id, productId: i.productId, quantity: i.quantity, price: products.find((p) => p.id === i.productId)!.price })));
+  const order = db.orders.insert({ userId: session.userId, totalAmount: total, shippingAddress: data.shippingAddress, phone: data.phone });
+  db.orderItems.insertMany(data.items.map((i) => ({ orderId: order.id, productId: i.productId, quantity: i.quantity, price: products.find((p) => p.id === i.productId)!.price })));
   // Réserve le stock
   for (const i of data.items) {
-    await db.update(t.products).set({ stock: sql`${t.products.stock} - ${i.quantity}` }).where(eq(t.products.id, i.productId));
+    db.products.update(i.productId, (p) => ({ stock: p.stock - i.quantity }));
   }
   const n = data.items.reduce((s, i) => s + i.quantity, 0);
   const tx = await createTransaction(session.userId, "SHOP", order.id, total, `Commande boutique (${n} article${n > 1 ? "s" : ""})`);

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { createTransaction } from "@/lib/payments";
@@ -15,7 +15,7 @@ const schema = z.object({
   tension: z.number().int().min(15).max(80),
   stringPattern: z.enum(["16x19", "18x20", "16x18", "OTHER"]),
   notes: z.string().optional(),
-  preferredDate: z.string().min(1, "Date de dépôt requise"),
+  preferredDate: z.string().optional().default(""),
   urgent: z.boolean(),
 });
 
@@ -24,10 +24,10 @@ export async function POST(req: Request) {
   if (error) return error;
   const { data, error: e2 } = await parse(req, schema);
   if (e2) return e2;
-  const preferredDate = new Date(data.preferredDate);
+  const preferredDate = data.preferredDate && !isNaN(new Date(data.preferredDate).getTime()) ? new Date(data.preferredDate) : new Date(Date.now() + 86400000);
   if (preferredDate.getTime() < Date.now() - 86400000) return bad("La date de dépôt doit être aujourd'hui ou plus tard");
   const price = STRINGING_BASE + (data.urgent ? STRINGING_URGENT : 0);
-  const [r] = await db.insert(t.stringingRequests).values({ ...data, preferredDate, price, userId: session.userId }).returning();
+  const r = db.stringingRequests.insert({ ...data, notes: data.notes ?? null, preferredDate, price, userId: session.userId });
   const tx = await createTransaction(session.userId, "STRINGING", r.id, price, `Cordage ${data.racketBrand} ${data.racketModel}${data.urgent ? " (urgent)" : ""}`);
   return NextResponse.json({ request: r, paymentUrl: `/dashboard/payments/${tx.id}` }, { status: 201 });
 }

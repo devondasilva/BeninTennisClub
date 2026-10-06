@@ -28,32 +28,36 @@ export default function ContactForm() {
 
   if (state === "done")
     return (
-      <div className="flex flex-col items-center justify-center rounded-3xl bg-emerald-50 p-10 text-center">
-        <CheckCircle2 size={56} className="text-emerald-500" />
-        <p className="mt-4 text-xl font-bold text-primary-400">Message envoyé !</p>
-        <p className="mt-1 text-slate-600">Nous vous répondons sous 24 h, par e-mail ou par téléphone.</p>
+      <div className="card flex flex-col items-center justify-center p-10 text-center md:p-14">
+        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-lime text-ink"><CheckCircle2 size={40} /></span>
+        <p className="mt-6 font-display text-3xl font-black tracking-tight text-ink">Message envoyé !</p>
+        <p className="mt-2 text-muted">Nous vous répondons sous 24 h, par e-mail ou par téléphone.</p>
       </div>
     );
 
   return (
-    <form onSubmit={submit} className="space-y-4 rounded-3xl border border-slate-100 bg-white p-7 shadow-soft">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div><label className="label">Nom complet</label><input className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required /></div>
-        <div><label className="label">Téléphone</label><input className="input" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="+229" /></div>
-      </div>
-      <div><label className="label">E-mail</label><input className="input" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} required /></div>
+    <form onSubmit={submit} className="card space-y-5 p-7 md:p-9">
       <div>
-        <label className="label">Sujet</label>
-        <div className="flex flex-wrap gap-2">
+        <p className="eyebrow">Formulaire</p>
+        <h2 className="mt-2 font-display text-3xl font-black tracking-tight text-ink">Écrivez-nous</h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div><label className="label" htmlFor="c-name">Nom complet</label><input id="c-name" className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required /></div>
+        <div><label className="label" htmlFor="c-phone">Téléphone</label><input id="c-phone" className="input" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="+229" /></div>
+      </div>
+      <div><label className="label" htmlFor="c-email">E-mail</label><input id="c-email" className="input" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} required /></div>
+      <div>
+        <p className="label">Sujet</p>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Sujet">
           {SUBJECTS.map((s) => (
-            <button type="button" key={s} onClick={() => setF({ ...f, subject: s })}
-              className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${f.subject === s ? "bg-primary-400 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{s}</button>
+            <button type="button" key={s} onClick={() => setF({ ...f, subject: s })} aria-pressed={f.subject === s}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${f.subject === s ? "bg-primary-400 text-white shadow-lg shadow-brand/20" : "bg-mist text-ink/70 hover:bg-cloud hover:text-ink"}`}>{s}</button>
           ))}
         </div>
       </div>
-      <div><label className="label">Message</label><textarea className="input" rows={5} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} required /></div>
-      {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-      <button className="btn-accent w-full py-3" disabled={state === "loading"}>{state === "loading" ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Envoyer</button>
+      <div><label className="label" htmlFor="c-msg">Message</label><textarea id="c-msg" className="input" rows={5} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} required /></div>
+      {error && <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
+      <button className="btn-accent w-full" disabled={state === "loading"}>{state === "loading" ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Envoyer</button>
     </form>
   );
 }

@@ -1,5 +1,4 @@
-import { eq } from "drizzle-orm";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { MEMBERSHIPS } from "./club";
 
 export type ClubInfo = { phone: string; whatsapp: string; email: string; address: string; addressHint: string; hours: string };
@@ -11,20 +10,21 @@ export const DEFAULT_CLUB_INFO: ClubInfo = {
 };
 
 export async function getSetting<T>(key: string, fallback: T): Promise<T> {
-  const row = await db.query.settings.findFirst({ where: eq(t.settings.key, key) });
+  const row = db.settings.get(key);
   if (!row) return fallback;
   try { return { ...(fallback as object), ...JSON.parse(row.value) } as T; } catch { return fallback; }
 }
 
 export async function setSetting(key: string, value: unknown) {
   const v = JSON.stringify(value);
-  await db.insert(t.settings).values({ key, value: v }).onConflictDoUpdate({ target: t.settings.key, set: { value: v } });
+  if (db.settings.get(key)) db.settings.update(key, { value: v });
+  else db.settings.insert({ id: key, value: v });
 }
 
 export const getClubInfo = () => getSetting<ClubInfo>("club_info", DEFAULT_CLUB_INFO);
 
 export async function getMemberships(): Promise<Membership[]> {
-  const row = await db.query.settings.findFirst({ where: eq(t.settings.key, "memberships") });
+  const row = db.settings.get("memberships");
   if (!row) return MEMBERSHIPS as unknown as Membership[];
   try { return JSON.parse(row.value); } catch { return MEMBERSHIPS as unknown as Membership[]; }
 }

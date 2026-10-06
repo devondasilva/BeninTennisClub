@@ -1,42 +1,44 @@
 {
   "name": "benin-tennis-club",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Plateforme digitale du Bénin Tennis Club — réservations, événements, boutique, coachs, cordage, collectes",
   "scripts": {
-    "setup": "tsx src/db/migrate.ts && tsx src/db/seed.ts",
+    "predev": "node scripts/check-node.mjs && node scripts/ensure-data.mjs",
     "dev": "next dev",
     "build": "next build",
+    "prestart": "node scripts/check-node.mjs && node scripts/ensure-data.mjs",
     "start": "next start",
-    "db:reset": "node -e \"require('fs').rmSync('btc.db',{force:true})\" && npm run setup",
-    "db:generate": "drizzle-kit generate",
-    "db:studio": "drizzle-kit studio",
+    "reset": "node scripts/seed.mjs --force",
+    "check": "tsc --noEmit && vitest run",
+    "test": "vitest run",
+    "test:smoke": "node tests/smoke.mjs",
     "images": "node scripts/generate-images.mjs"
   },
   "dependencies": {
-    "@libsql/client": "^0.15.15",
-    "bcryptjs": "^2.4.3",
-    "drizzle-orm": "^0.44.7",
-    "jose": "^5.9.6",
-    "lucide-react": "^0.468.0",
-    "next": "15.5.27",
+    "@fontsource/fraunces": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "framer-motion": "^11.11.17",
+    "lucide-react": "^0.454.0",
+    "next": "14.2.35",
     "nodemailer": "^6.9.16",
-    "react": "19.1.1",
-    "react-dom": "19.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "stripe": "^17.4.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/node": "^22.10.2",
+    "@types/node": "^20.14.15",
     "@types/nodemailer": "^6.4.17",
-    "@types/react": "^19.0.2",
-    "@types/react-dom": "^19.0.2",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.20",
-    "drizzle-kit": "^0.31.11",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.17",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4",
+    "vitest": "^3.2.7"
+  },
+  "engines": {
+    "node": ">=18.18"
   }
 }

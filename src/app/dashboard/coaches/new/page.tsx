@@ -10,7 +10,7 @@ export default async function NewCoachPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <BackLink href="/dashboard/coaches" label="Coachs" />
-      <PageHeader title="Ajouter un coach" subtitle="Sa fiche apparaîtra immédiatement sur la page « Nos coachs »" />
+      <PageHeader eyebrow="Équipe des coachs" title="Ajouter un coach" subtitle="Sa fiche apparaîtra immédiatement sur la page « Nos coachs »" />
       <NewCoachForm />
     </div>
   );

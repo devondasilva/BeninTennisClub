@@ -1,6 +1,5 @@
-import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession, logAction } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { notify } from "@/lib/notify";
@@ -17,7 +16,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (e2) return e2;
   const startDate = new Date(data.startDate), endDate = new Date(data.endDate);
   if (endDate < startDate) return bad("La fin doit être après le début");
-  const [e] = await db.update(t.events).set({ ...data, startDate, endDate, image: (await storeImage(data.image)) || IMAGES[data.type] }).where(eq(t.events.id, id)).returning();
+  const e = db.events.update(id, { ...data, startDate, endDate, image: (await storeImage(data.image)) || IMAGES[data.type] });
   if (!e) return bad("Événement introuvable", 404);
   await logAction(session, "Événement modifié", e.title);
   return NextResponse.json({ message: "Événement modifié" });
@@ -28,18 +27,20 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { session, error } = await apiSession("events.manage");
   if (error) return error;
   const { id } = await params;
-  const e = await db.query.events.findFirst({ where: eq(t.events.id, id), with: { registrations: true } });
+  const e = db.events.get(id);
   if (!e) return bad("Événement introuvable", 404);
-  if (e.registrations.length === 0) {
-    await db.delete(t.events).where(eq(t.events.id, id));
+  const registrations = db.eventRegistrations.filter((r) => r.eventId === id);
+  if (registrations.length === 0) {
+    db.eventRegistrations.removeWhere((r) => r.eventId === id); // cascade (aucune inscription ici)
+    db.events.remove(id);
     await logAction(session, "Événement supprimé", e.title);
     return NextResponse.json({ message: "Événement supprimé" });
   }
-  await db.update(t.events).set({ status: "CANCELLED" }).where(eq(t.events.id, id));
-  for (const r of e.registrations) {
-    await db.update(t.transactions).set({ status: "REFUNDED" }).where(and(eq(t.transactions.relatedId, r.id), eq(t.transactions.status, "COMPLETED")));
+  db.events.update(id, { status: "CANCELLED" });
+  for (const r of registrations) {
+    db.transactions.updateWhere((t) => t.relatedId === r.id && t.status === "COMPLETED", { status: "REFUNDED" });
     await notify(r.userId, "RESERVATION_CANCELLED", "Événement annulé", `« ${e.title} » du ${dateFr(e.startDate)} est annulé. ${e.price ? "Votre inscription vous sera remboursée sous 5 jours." : ""}`, "/dashboard/events");
   }
-  await logAction(session, "Événement annulé", `${e.title} (${e.registrations.length} inscrits prévenus)`);
-  return NextResponse.json({ message: `Événement annulé, ${e.registrations.length} inscrit(s) prévenu(s)` });
+  await logAction(session, "Événement annulé", `${e.title} (${registrations.length} inscrits prévenus)`);
+  return NextResponse.json({ message: `Événement annulé, ${registrations.length} inscrit(s) prévenu(s)` });
 }

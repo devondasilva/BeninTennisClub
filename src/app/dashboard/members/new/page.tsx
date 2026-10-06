@@ -10,7 +10,7 @@ export default async function NewMemberPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <BackLink href="/dashboard/members" label="Adhérents" />
-      <PageHeader title="Créer un compte membre" subtitle="Un mot de passe provisoire est généré automatiquement" />
+      <PageHeader eyebrow="Back-office · Adhérents" title="Créer un compte membre" subtitle="Un mot de passe provisoire est généré automatiquement" />
       <NewMemberForm canSetRole={s.can("access.manage")} />
     </div>
   );

@@ -2,25 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body { @apply bg-slate-50 text-slate-800 antialiased; }
-  /* Repère clavier bien visible sur tout élément cliquable */
-  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [role="switch"]:focus-visible {
-    outline: 3px solid #b5c74c; outline-offset: 2px;
-  }
-  button:not(:disabled), [role="button"], label[for], summary { cursor: pointer; }
+:root {
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-mist font-body text-ink antialiased; }
+  h1, h2, h3 { @apply text-ink; }
+  /* Repère clavier bien visible sur tout élément cliquable */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [role="switch"]:focus-visible {
+    outline: 2px solid #1F5996; outline-offset: 2px;
+  }
+  button:not(:disabled), [role="button"], label[for], summary { cursor: pointer; }
+  ::selection { background: #D5DA45; color: #0B2440; }
+}
+
+/* Composants partagés — même langage que Beach Tennis Bénin (voir aussi src/lib/ui.ts) */
 @layer components {
-  .card { @apply bg-white rounded-2xl shadow-soft border border-slate-100; }
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed; }
-  .btn-primary { @apply btn bg-primary-400 text-white hover:bg-primary-500; }
-  .btn-accent { @apply btn bg-accent-400 text-primary-400 hover:bg-accent-500; }
-  .btn-ghost { @apply btn bg-slate-100 text-slate-700 hover:bg-slate-200; }
-  .input { @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-200; }
-  .label { @apply mb-1.5 block text-sm font-medium text-slate-700; }
+  .card { @apply rounded-[2rem] border border-ink/[0.08] bg-white shadow-sm; }
+  .card-hover { @apply card transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand/10; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-xs font-bold uppercase tracking-widest transition-all disabled:pointer-events-none disabled:opacity-50 sm:text-[13px]; }
+  .btn-primary { @apply btn bg-brand text-white shadow-lg shadow-brand/20 hover:bg-ink; }
+  .btn-accent { @apply btn bg-lime text-ink shadow-lg shadow-lime/25 hover:bg-ink hover:text-white; }
+  .btn-dark { @apply btn bg-ink text-white hover:bg-brand; }
+  .btn-ghost { @apply btn border-2 border-ink/10 bg-white text-ink hover:border-brand hover:text-brand; }
+  .btn-ghost-dark { @apply btn border border-white/20 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20; }
+  .btn-sm { @apply px-4 py-2.5 text-[11px]; }
+  .input { @apply w-full rounded-2xl border-2 border-ink/10 bg-white px-4 py-3 font-semibold text-ink outline-none transition-colors placeholder:font-medium placeholder:text-ink/35 focus:border-brand; }
+  .label { @apply mb-2 block text-[11px] font-bold uppercase tracking-widest text-ink/60; }
   .chip { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.25em] text-brand; }
+  .section-title { @apply font-display text-3xl font-black tracking-tight text-ink md:text-4xl; }
   .table-base { @apply w-full text-sm; }
-  .table-base th { @apply bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500; }
-  .table-base td { @apply border-t border-slate-100 px-4 py-3; }
+  .table-base th { @apply bg-mist px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-ink/50; }
+  .table-base td { @apply border-t border-ink/[0.06] px-4 py-3; }
+}
+
+/* Motif discret de lignes de terrain (fonds de section) */
+.court-lines {
+  background-image: repeating-linear-gradient(to right, rgba(11, 36, 64, 0.06) 0px, rgba(11, 36, 64, 0.06) 1px, transparent 1px, transparent 64px);
+}
+.court-lines-dark {
+  background-image:
+    repeating-linear-gradient(to right, rgba(255, 255, 255, 0.08) 0px, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 64px),
+    repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 64px);
+}
+.tabular { font-variant-numeric: tabular-nums; }
+.skeleton {
+  background: linear-gradient(90deg, #e3ecf6 0%, #f3f7fb 50%, #e3ecf6 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+.scroll-thin { scrollbar-width: thin; scrollbar-color: rgba(11, 36, 64, 0.2) transparent; }
+.scroll-thin-dark { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.18) transparent; }
+input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -20,8 +20,13 @@ export default function ExpandableText({ text, lines = 3, className = "" }: { te
         {text}
       </p>
       {(overflow || open) && (
-        <button type="button" onClick={() => setOpen(!open)} className="mt-1 inline-flex items-center gap-0.5 text-sm font-semibold text-primary-400 hover:underline">
-          {open ? <>Voir moins <ChevronUp size={15} /></> : <>Voir plus <ChevronDown size={15} /></>}
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          className="group mt-2 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-brand transition-colors hover:text-ink"
+        >
+          {open ? <>Voir moins <ChevronUp size={14} className="transition-transform group-hover:-translate-y-0.5" /></> : <>Voir plus <ChevronDown size={14} className="transition-transform group-hover:translate-y-0.5" /></>}
         </button>
       )}
     </div>

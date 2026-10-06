@@ -10,7 +10,7 @@ export default async function NewCampaignPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <BackLink href="/dashboard/fundraising" label="Collectes" />
-      <PageHeader title="Lancer une collecte" />
+      <PageHeader eyebrow="Collectes du club" title="Lancer une collecte" subtitle="Présentez le projet, fixez un objectif et une date limite." />
       <CampaignForm initial={{ title: "", description: "", category: "EQUIPMENT", targetAmount: 500000, deadline: "", image: null, status: "ACTIVE" }} />
     </div>
   );

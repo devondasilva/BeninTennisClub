@@ -1,6 +1,5 @@
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession, logAction } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { storeImage } from "@/lib/uploads";
@@ -12,7 +11,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const { data, error: e2 } = await parse(req, campaignSchema);
   if (e2) return e2;
-  const [c] = await db.update(t.campaigns).set({ ...data, deadline: new Date(`${data.deadline}T23:59:59`), image: (await storeImage(data.image)) || IMAGES[data.category] }).where(eq(t.campaigns.id, id)).returning();
+  const c = db.campaigns.update(id, { ...data, deadline: new Date(`${data.deadline}T23:59:59`), image: (await storeImage(data.image)) || IMAGES[data.category] });
   if (!c) return bad("Collecte introuvable", 404);
   await logAction(session, data.status === "COMPLETED" ? "Collecte clôturée" : "Collecte modifiée", c.title);
   return NextResponse.json({ message: "Collecte enregistrée" });

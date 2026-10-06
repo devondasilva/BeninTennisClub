@@ -1,7 +1,6 @@
-import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 
@@ -17,14 +16,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const { data, error: e2 } = await parse(req, schema);
   if (e2) return e2;
-  const coach = await db.query.coaches.findFirst({ where: eq(t.coaches.id, id) });
+  const coach = db.coaches.get(id);
   if (!coach) return bad("Coach introuvable", 404);
   if (coach.userId === session.userId) return bad("Vous ne pouvez pas noter votre propre profil");
-  const existing = await db.query.coachReviews.findFirst({ where: and(eq(t.coachReviews.coachId, id), eq(t.coachReviews.userId, session.userId)) });
+  const existing = db.coachReviews.find((r) => r.coachId === id && r.userId === session.userId);
   if (existing) {
-    await db.update(t.coachReviews).set({ ...data, createdAt: new Date() }).where(eq(t.coachReviews.id, existing.id));
+    db.coachReviews.update(existing.id, { ...data, createdAt: new Date() });
     return NextResponse.json({ message: "Avis mis à jour, merci !" });
   }
-  await db.insert(t.coachReviews).values({ ...data, coachId: id, userId: session.userId });
+  db.coachReviews.insert({ ...data, coachId: id, userId: session.userId });
   return NextResponse.json({ message: "Merci pour votre avis !" }, { status: 201 });
 }

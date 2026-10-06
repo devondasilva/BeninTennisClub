@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { desc } from "drizzle-orm";
-import { Check, ExternalLink, Eye, Users, Trophy, Megaphone } from "lucide-react";
-import { db, t } from "@/db";
+import { Check, ExternalLink, Eye, Users, Trophy, Megaphone, Handshake, BarChart3 } from "lucide-react";
+import { db } from "@/db";
+import { sortBy } from "@/db/relations";
 import { xof } from "@/lib/format";
 import { activeFilter, partnerClickUrl, partnerImage, TIERS } from "@/lib/partners";
-import PageHero from "@/components/site/PageHero";
+import PageHero, { PageBody, HeroPanel } from "@/components/site/PageHero";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
 
 export const metadata = { title: "Partenaires" };
 
@@ -15,66 +16,102 @@ const OFFERS = [
   { tier: "PARTNER", price: 400000, perks: ["Bannière sur la boutique ou l'espace membre", "Logo dans le bandeau partenaires", "Offre réservée aux adhérents mise en avant"] },
 ];
 
+const AUDIENCE = [
+  { icon: Users, v: "300+ membres", l: "et leurs familles, chaque semaine au club" },
+  { icon: Eye, v: "30 000+ affichages", l: "de bannières par an sur le site et l'application" },
+  { icon: Trophy, v: "5 événements", l: "par an, dont l'Open de Cotonou" },
+];
+
 export default async function PartnersPublicPage() {
-  const partners = await db.query.partners.findMany({ where: activeFilter(), orderBy: desc(t.partners.amount) });
+  const partners = sortBy(db.partners.filter(activeFilter()), "amount", "desc");
   return (
     <>
-      <PageHero kicker="Ils nous font confiance" title="Nos partenaires" text="Le club grandit grâce aux entreprises qui soutiennent le tennis au Bénin. Merci à elles !" image="/images/events/tournament.svg" />
+      <PageHero
+        kicker="Ils nous font confiance"
+        icon={<Handshake size={15} />}
+        title="Nos"
+        accent="partenaires"
+        text="Le club grandit grâce aux entreprises qui soutiennent le tennis au Bénin. Merci à elles !"
+        image="/images/events/tournament.svg"
+        crumbs={[{ href: "/", label: "Accueil" }]}
+        aside={
+          <HeroPanel
+            items={[
+              { icon: <Megaphone size={18} />, text: "Bannières sur le site et l'espace membre" },
+              { icon: <Trophy size={18} />, text: "Visibilité sur les tournois du club" },
+              { icon: <BarChart3 size={18} />, text: "Affichages et clics mesurés pour chaque partenaire" },
+            ]}
+          />
+        }
+      >
+        <a href="#devenir-partenaire" className="btn-accent">Devenir partenaire</a>
+      </PageHero>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
-        <div className="grid gap-6 md:grid-cols-2">
+      <PageBody>
+        {partners.length === 0 && <div className="card p-12 text-center text-muted">Aucun partenaire pour le moment.</div>}
+        <Stagger className="grid gap-6 md:grid-cols-2">
           {partners.map((p) => {
             const logo = partnerImage(p, "logo"), tier = TIERS[p.tier];
             return (
-              <article key={p.id} id={p.id} className="flex scroll-mt-24 gap-5 rounded-2xl border border-slate-100 p-6 shadow-soft">
-                <div className="flex h-24 w-32 shrink-0 items-center justify-center rounded-xl bg-slate-50 p-3">
-                  {logo ? <img src={logo} alt={p.name} className="max-h-full max-w-full object-contain" /> : <span className="font-bold">{p.name}</span>}
-                </div>
-                <div className="flex flex-1 flex-col">
-                  <span className={`chip w-fit ${tier?.color}`}>Partenaire {tier?.label}</span>
-                  <h2 className="mt-2 text-lg font-bold text-primary-400">{p.name}</h2>
-                  <p className="mt-1 text-sm text-slate-500">{p.description}</p>
-                  {p.website && (
-                    <a href={partnerClickUrl(p.id)} target="_blank" rel="noopener sponsored" className="mt-auto inline-flex w-fit items-center gap-1.5 pt-3 text-sm font-semibold text-primary-400 hover:underline">
-                      Visiter le site <ExternalLink size={14} />
-                    </a>
-                  )}
-                </div>
-              </article>
+              <StaggerItem key={p.id} className="h-full">
+                <article id={p.id} className="card-hover flex h-full scroll-mt-24 flex-col gap-5 p-6 sm:flex-row md:p-7">
+                  <div className="flex h-28 w-full shrink-0 items-center justify-center rounded-2xl bg-mist p-4 sm:w-36">
+                    {logo ? <img src={logo} alt={p.name} className="max-h-full max-w-full object-contain" /> : <span className="font-display font-black text-ink">{p.name}</span>}
+                  </div>
+                  <div className="flex flex-1 flex-col">
+                    <span className={`chip w-fit font-bold ${tier?.color ?? ""}`}>Partenaire {tier?.label}</span>
+                    <h2 className="mt-3 font-display text-xl font-black text-ink">{p.name}</h2>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted">{p.description}</p>
+                    {p.website && (
+                      <a href={partnerClickUrl(p.id)} target="_blank" rel="noopener sponsored" className="group mt-auto inline-flex w-fit items-center gap-1.5 pt-4 text-xs font-bold uppercase tracking-widest text-brand hover:text-ink">
+                        Visiter le site <ExternalLink size={14} className="transition-transform group-hover:translate-x-0.5" />
+                      </a>
+                    )}
+                  </div>
+                </article>
+              </StaggerItem>
             );
           })}
-        </div>
-      </section>
+        </Stagger>
+      </PageBody>
 
-      <section id="devenir-partenaire" className="scroll-mt-20 bg-primary-400">
-        <div className="mx-auto max-w-7xl px-4 py-16 md:px-8">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent-400">Devenir partenaire</p>
-          <h2 className="mt-2 text-3xl font-bold text-white md:text-4xl">Associez votre marque au tennis béninois</h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {[[Users, "300+ membres", "et leurs familles, chaque semaine au club"], [Eye, "30 000+ affichages", "de bannières par an sur le site et l'application"], [Trophy, "5 événements", "par an, dont l'Open de Cotonou"]].map(([Icon, v, l]) => {
-              const I = Icon as typeof Users;
-              return (
-                <div key={v as string} className="flex items-center gap-4 rounded-2xl bg-white/10 p-5">
-                  <I className="text-accent-400" size={28} />
-                  <div><p className="text-xl font-bold text-white">{v as string}</p><p className="text-sm text-slate-300">{l as string}</p></div>
+      <section id="devenir-partenaire" className="relative scroll-mt-20 overflow-hidden bg-ink py-24 text-white md:py-28">
+        <div className="court-lines-dark pointer-events-none absolute inset-0 opacity-30" aria-hidden />
+        <div aria-hidden className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-lime/15 blur-3xl" />
+        <div className="relative mx-auto max-w-content px-6">
+          <Reveal>
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-lime">Devenir partenaire</p>
+            <h2 className="mt-4 max-w-3xl font-display text-4xl font-black leading-[0.98] tracking-tight text-white md:text-6xl">Associez votre marque <span className="text-lime">au tennis béninois</span></h2>
+          </Reveal>
+          <Stagger className="mt-10 grid gap-4 sm:grid-cols-3">
+            {AUDIENCE.map(({ icon: I, v, l }) => (
+              <StaggerItem key={v}>
+                <div className="flex h-full items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-5">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-lime/15 text-lime"><I size={24} /></span>
+                  <div><p className="font-display text-xl font-black text-white">{v}</p><p className="text-sm text-white/60">{l}</p></div>
                 </div>
+              </StaggerItem>
+            ))}
+          </Stagger>
+          <Stagger className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {OFFERS.map((o) => {
+              const gold = o.tier === "GOLD";
+              return (
+                <StaggerItem key={o.tier} className="h-full">
+                  <div className={`flex h-full flex-col rounded-[2rem] p-7 transition-transform duration-300 hover:-translate-y-1 ${gold ? "bg-lime text-ink" : "bg-white text-ink"}`}>
+                    <span className={`chip w-fit font-bold ${TIERS[o.tier].color}`}>{TIERS[o.tier].label}</span>
+                    <p className={`mt-5 text-sm ${gold ? "text-ink/70" : "text-muted"}`}>à partir de</p>
+                    <p className="font-display text-2xl font-black tracking-tight text-ink">{xof(o.price)}<span className={`font-body text-sm font-medium ${gold ? "text-ink/70" : "text-muted"}`}> / an</span></p>
+                    <ul className="mt-5 flex-1 space-y-2.5 text-sm">
+                      {o.perks.map((p) => <li key={p} className="flex gap-2 text-ink/80"><Check size={17} className="shrink-0 text-brand-dark" /> {p}</li>)}
+                    </ul>
+                    <Link href="/contact?sujet=Partenariat" className={`${gold ? "btn-dark" : "btn-primary"} mt-7 w-full`}>Nous contacter</Link>
+                  </div>
+                </StaggerItem>
               );
             })}
-          </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {OFFERS.map((o) => (
-              <div key={o.tier} className={`flex flex-col rounded-3xl p-6 ${o.tier === "GOLD" ? "bg-accent-400" : "bg-white"}`}>
-                <span className={`chip w-fit ${TIERS[o.tier].color}`}>{TIERS[o.tier].label}</span>
-                <p className="mt-4 text-sm text-slate-500">à partir de</p>
-                <p className="text-2xl font-extrabold text-primary-400">{xof(o.price)}<span className="text-sm font-medium text-slate-500"> / an</span></p>
-                <ul className="mt-5 flex-1 space-y-2 text-sm">
-                  {o.perks.map((p) => <li key={p} className="flex gap-2 text-slate-700"><Check size={17} className="shrink-0 text-primary-400" /> {p}</li>)}
-                </ul>
-                <Link href="/contact?sujet=Partenariat" className="btn-primary mt-6 w-full">Nous contacter</Link>
-              </div>
-            ))}
-          </div>
-          <p className="mt-6 flex items-center gap-2 text-sm text-slate-300"><Megaphone size={16} className="text-accent-400" /> Chaque partenaire reçoit le nombre d'affichages et de clics de sa bannière.</p>
+          </Stagger>
+          <p className="mt-8 flex items-center gap-2 text-sm text-white/65"><Megaphone size={16} className="shrink-0 text-lime" /> Chaque partenaire reçoit le nombre d'affichages et de clics de sa bannière.</p>
         </div>
       </section>
     </>

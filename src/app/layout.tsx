@@ -1,4 +1,12 @@
 import type { Metadata } from "next";
+// Polices auto-hébergées (fonctionnent hors ligne) — même duo que Beach Tennis Bénin
+import "@fontsource/fraunces/700.css";
+import "@fontsource/fraunces/900.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/inter/800.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body style={{ fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" }}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

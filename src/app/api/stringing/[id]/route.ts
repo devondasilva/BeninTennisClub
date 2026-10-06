@@ -1,7 +1,6 @@
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession } from "@/lib/auth";
 import { parse, bad } from "@/lib/api";
 import { notify } from "@/lib/notify";
@@ -20,7 +19,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const { data, error: e2 } = await parse(req, schema);
   if (e2) return e2;
-  const [r] = await db.update(t.stringingRequests).set({ status: data.status }).where(eq(t.stringingRequests.id, id)).returning();
+  const r = db.stringingRequests.update(id, { status: data.status });
   if (!r) return bad("Demande introuvable", 404);
   if (MSG[data.status]) await notify(r.userId, "STRINGING_UPDATE", `Cordage : ${r.racketBrand} ${r.racketModel}`, MSG[data.status], "/dashboard/stringing");
   return NextResponse.json({ request: r });

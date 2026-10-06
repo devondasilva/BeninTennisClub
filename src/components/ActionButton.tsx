@@ -22,10 +22,10 @@ export default function ActionButton({ url, children, className = "btn-accent", 
 
   return (
     <div className="w-full">
-      <button onClick={go} disabled={loading} className={`${className} w-full`}>
+      <button type="button" onClick={go} disabled={loading} aria-busy={loading} className={`${className} w-full`}>
         {loading && <Loader2 size={16} className="animate-spin" />} {children}
       </button>
-      {error && <p className="mt-2 text-center text-xs text-red-600">{error}</p>}
+      {error && <p role="alert" className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-center text-xs font-semibold text-red-700">{error}</p>}
     </div>
   );
 }

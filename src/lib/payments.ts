@@ -1,5 +1,5 @@
-import { and, eq, sql } from "drizzle-orm";
-import { db, t } from "@/db";
+import { db } from "@/db";
+import { withOrderRefs } from "@/db/relations";
 import { notify } from "./notify";
 import { xof, dateFr, timeFr } from "./format";
 
@@ -12,11 +12,7 @@ export async function createTransaction(
   amount: number,
   description: string
 ) {
-  const [tx] = await db
-    .insert(t.transactions)
-    .values({ userId, type, relatedId, amount, description, status: "PENDING" })
-    .returning();
-  return tx;
+  return db.transactions.insert({ userId, type, relatedId, amount, description, status: "PENDING" });
 }
 
 /**
@@ -25,23 +21,19 @@ export async function createTransaction(
  * Idempotent : un second appel ne refait rien.
  */
 export async function completeTransaction(id: string, method: string, reference?: string) {
-  const [tx] = await db
-    .update(t.transactions)
-    .set({ status: "COMPLETED", method, reference, paidAt: new Date() })
-    .where(and(eq(t.transactions.id, id), eq(t.transactions.status, "PENDING")))
-    .returning();
-  if (!tx) return db.query.transactions.findFirst({ where: eq(t.transactions.id, id) });
+  const current = db.transactions.get(id);
+  if (!current || current.status !== "PENDING") return current;
+  const tx = db.transactions.update(id, { status: "COMPLETED", method, reference: reference ?? null, paidAt: new Date() })!;
 
   switch (tx.type) {
     case "RESERVATION": {
-      await db.update(t.reservations).set({ status: "CONFIRMED" }).where(eq(t.reservations.id, tx.relatedId));
-      const r = await db.query.reservations.findFirst({
-        where: eq(t.reservations.id, tx.relatedId),
-        with: { court: true, coach: true, user: true },
-      });
-      if (!r) break;
+      const res = db.reservations.update(tx.relatedId, { status: "CONFIRMED" });
+      const court = res && db.courts.get(res.courtId);
+      const user = res && db.users.get(res.userId);
+      if (!res || !court || !user) break;
+      const r = { ...res, court, user, coach: res.coachId ? db.coaches.get(res.coachId) ?? null : null };
       if (r.coach) {
-        await db.insert(t.commissions).values({
+        db.commissions.insert({
           coachId: r.coach.id,
           reservationId: r.id,
           clientName: `${r.user.firstName} ${r.user.lastName}`,
@@ -65,23 +57,18 @@ export async function completeTransaction(id: string, method: string, reference?
       break;
     }
     case "EVENT": {
-      await db.update(t.eventRegistrations).set({ status: "CONFIRMED" }).where(eq(t.eventRegistrations.id, tx.relatedId));
-      const reg = await db.query.eventRegistrations.findFirst({
-        where: eq(t.eventRegistrations.id, tx.relatedId),
-        with: { event: true },
-      });
+      const registration = db.eventRegistrations.update(tx.relatedId, { status: "CONFIRMED" });
+      const event = registration && db.events.get(registration.eventId);
+      const reg = registration && event ? { ...registration, event } : null;
       if (reg)
         await notify(tx.userId, "EVENT_REGISTERED", "Inscription confirmée",
           `Vous êtes inscrit(e) à « ${reg.event.title} » le ${dateFr(reg.event.startDate)}.`, "/dashboard/events");
       break;
     }
     case "SHOP": {
-      await db.update(t.orders).set({ status: "PAID" }).where(eq(t.orders.id, tx.relatedId));
-      const order = await db.query.orders.findFirst({
-        where: eq(t.orders.id, tx.relatedId),
-        with: { items: { with: { product: true } } },
-      });
-      if (!order) break;
+      const paid = db.orders.update(tx.relatedId, { status: "PAID" });
+      if (!paid) break;
+      const [order] = withOrderRefs([paid]);
       const rows = order.items
         .map((i) => `<tr><td>${i.product.name}</td><td>× ${i.quantity}</td><td align="right">${xof(i.price * i.quantity)}</td></tr>`)
         .join("");
@@ -93,22 +80,18 @@ export async function completeTransaction(id: string, method: string, reference?
       break;
     }
     case "STRINGING": {
-      await db.update(t.stringingRequests).set({ status: "PENDING" }).where(eq(t.stringingRequests.id, tx.relatedId));
+      db.stringingRequests.update(tx.relatedId, { status: "PENDING" });
       await notify(tx.userId, "PAYMENT_CONFIRMED", "Demande de cordage enregistrée",
         `Paiement de ${xof(tx.amount)} reçu. Nous vous prévenons dès que votre raquette est prête.`, "/dashboard/stringing");
       break;
     }
     case "DONATION": {
-      await db.update(t.donations).set({ status: "COMPLETED" }).where(eq(t.donations.id, tx.relatedId));
-      const d = await db.query.donations.findFirst({ where: eq(t.donations.id, tx.relatedId), with: { campaign: true } });
-      if (!d) break;
-      const [{ total }] = await db
-        .select({ total: sql<number>`coalesce(sum(${t.donations.amount}), 0)` })
-        .from(t.donations)
-        .where(and(eq(t.donations.campaignId, d.campaignId), eq(t.donations.status, "COMPLETED")));
-      if (total >= d.campaign.targetAmount) {
-        await db.update(t.campaigns).set({ status: "COMPLETED" }).where(eq(t.campaigns.id, d.campaignId));
-      }
+      const donation = db.donations.update(tx.relatedId, { status: "COMPLETED" });
+      const campaign = donation && db.campaigns.get(donation.campaignId);
+      if (!donation || !campaign) break;
+      const d = { ...donation, campaign };
+      const total = db.donations.sum("amount", (x) => x.campaignId === d.campaignId && x.status === "COMPLETED");
+      if (total >= d.campaign.targetAmount) db.campaigns.update(d.campaignId, { status: "COMPLETED" });
       await notify(tx.userId, "PAYMENT_CONFIRMED", "Merci pour votre don !",
         `Votre don de ${xof(d.amount)} pour « ${d.campaign.title} » a bien été reçu.`, `/dashboard/fundraising/${d.campaignId}`);
       break;

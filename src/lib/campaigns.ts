@@ -1,5 +1,4 @@
-import { eq, sql } from "drizzle-orm";
-import { db, t } from "@/db";
+import { db } from "@/db";
 
 export const CATEGORY: Record<string, [string, string]> = {
   EQUIPMENT: ["Équipement", "bg-sky-100 text-sky-800"],
@@ -11,13 +10,9 @@ export const CATEGORY: Record<string, [string, string]> = {
 };
 
 export async function campaignTotals() {
-  const rows = await db
-    .select({ campaignId: t.donations.campaignId, total: sql<number>`sum(${t.donations.amount})`, n: sql<number>`count(*)` })
-    .from(t.donations)
-    .where(eq(t.donations.status, "COMPLETED"))
-    .groupBy(t.donations.campaignId);
+  const done = db.donations.filter((d) => d.status === "COMPLETED");
   return (id: string) => {
-    const r = rows.find((x) => x.campaignId === id);
-    return { total: r?.total ?? 0, count: r?.n ?? 0 };
+    const mine = done.filter((d) => d.campaignId === id);
+    return { total: mine.reduce((s, d) => s + d.amount, 0), count: mine.length };
   };
 }

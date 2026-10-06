@@ -1,0 +1,50 @@
+[
+  {
+    "id": "8a306e70-d18d-43d2-9e9a-931655be3e99",
+    "createdById": "447baaec-2708-46a1-a4fd-a31a9daa0d81",
+    "title": "Éclairage LED des courts 2 et 3",
+    "description": "Remplacer les vieux projecteurs halogènes par des LED pour jouer le soir, réduire la facture d'électricité de 60 % et accueillir des tournois nocturnes.",
+    "category": "FACILITY",
+    "targetAmount": 4500000,
+    "deadline": "2026-11-20T05:00:00.000Z",
+    "image": "/images/campaigns/floodlights.svg",
+    "status": "ACTIVE",
+    "createdAt": "2026-09-11T04:00:00.000Z"
+  },
+  {
+    "id": "31c2ff70-8381-48a1-b246-321b5c21ad07",
+    "createdById": "447baaec-2708-46a1-a4fd-a31a9daa0d81",
+    "title": "Raquettes pour l'école de tennis",
+    "description": "Équiper 40 enfants de raquettes adaptées à leur taille et de balles mousse pour l'initiation.",
+    "category": "EQUIPMENT",
+    "targetAmount": 1200000,
+    "deadline": "2026-10-11T04:00:00.000Z",
+    "image": "/images/campaigns/equipment.svg",
+    "status": "ACTIVE",
+    "createdAt": "2026-09-06T04:00:00.000Z"
+  },
+  {
+    "id": "3eb2c53a-5305-4dbd-8b9b-b900b9898317",
+    "createdById": "b783333f-b919-42e2-ab30-496f2782f4fe",
+    "title": "Bourses jeunes talents",
+    "description": "Financer les déplacements de 6 juniors sélectionnés pour les tournois ITF de la sous-région (Lomé, Abidjan, Dakar).",
+    "category": "TRAINING",
+    "targetAmount": 3000000,
+    "deadline": "2026-12-05T05:00:00.000Z",
+    "image": "/images/campaigns/youth.svg",
+    "status": "ACTIVE",
+    "createdAt": "2026-09-21T04:00:00.000Z"
+  },
+  {
+    "id": "4e1dbdc7-a663-48c8-8177-77fc1d2ea1dc",
+    "createdById": "447baaec-2708-46a1-a4fd-a31a9daa0d81",
+    "title": "Dotation de l'Open de Cotonou",
+    "description": "Compléter la dotation du tournoi pour attirer les meilleurs joueurs du Bénin et des pays voisins.",
+    "category": "TOURNAMENT",
+    "targetAmount": 1500000,
+    "deadline": "2026-10-03T04:00:00.000Z",
+    "image": "/images/campaigns/tournament.svg",
+    "status": "COMPLETED",
+    "createdAt": "2026-08-07T04:00:00.000Z"
+  }
+]

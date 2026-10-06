@@ -10,7 +10,7 @@ export default async function NewCourt() {
   return (
     <div className="mx-auto max-w-3xl">
       <BackLink href="/dashboard/admin/courts" label="Courts" />
-      <PageHeader title="Ajouter un court" />
+      <PageHeader eyebrow="Back-office · Courts" title="Ajouter un court" subtitle="Il sera proposé à la réservation dès son ouverture" />
       <CourtForm initial={{ name: "", surface: "Dur (résine)", description: "", pricePerSlot: 5000, image: "/images/courts/court-1.svg", isActive: true }} />
     </div>
   );

@@ -1,7 +1,6 @@
-import { and, eq, gt, lt, ne } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 import { createTransaction } from "@/lib/payments";
@@ -20,7 +19,13 @@ const schema = z.object({
 export async function GET() {
   const { session, error } = await apiSession();
   if (error) return error;
-  const list = await db.query.reservations.findMany({ where: eq(t.reservations.userId, session.userId), with: { court: true, coach: true } });
+  const list = db.reservations
+    .filter((r) => r.userId === session.userId)
+    .flatMap((r) => {
+      const court = db.courts.get(r.courtId);
+      if (!court) return [];
+      return [{ ...r, court, coach: r.coachId ? db.coaches.get(r.coachId) ?? null : null }];
+    });
   return NextResponse.json({ reservations: list });
 }
 
@@ -39,27 +44,26 @@ export async function POST(req: Request) {
   if (startTime.getHours() < OPEN_HOUR || endTime.getTime() > new Date(`${data.date}T00:00:00`).getTime() + CLOSE_HOUR * 3600000)
     return bad("Le club est ouvert de 6 h à minuit");
 
-  const court = await db.query.courts.findFirst({ where: eq(t.courts.id, data.courtId) });
+  const court = db.courts.get(data.courtId);
   if (!court) return bad("Court introuvable", 404);
-  const coach = data.coachId ? await db.query.coaches.findFirst({ where: eq(t.coaches.id, data.coachId) }) : null;
+  const coach = data.coachId ? db.coaches.get(data.coachId) ?? null : null;
 
-  const overlap = await db.query.reservations.findFirst({
-    where: and(eq(t.reservations.courtId, court.id), ne(t.reservations.status, "CANCELLED"), lt(t.reservations.startTime, endTime), gt(t.reservations.endTime, startTime)),
-  });
+  // Chevauchement : le court est déjà pris sur une partie du créneau
+  const overlap = db.reservations.find(
+    (r) => r.courtId === court.id && r.status !== "CANCELLED" && r.startTime < endTime && r.endTime > startTime
+  );
   if (overlap) return bad("Ce créneau vient d'être réservé, choisissez-en un autre", 409);
 
+  // Le coach ne peut pas être sur deux créneaux à la fois
   if (coach) {
-    const busy = await db.query.reservations.findFirst({
-      where: and(eq(t.reservations.coachId, coach.id), ne(t.reservations.status, "CANCELLED"), lt(t.reservations.startTime, endTime), gt(t.reservations.endTime, startTime)),
-    });
+    const busy = db.reservations.find(
+      (r) => r.coachId === coach.id && r.status !== "CANCELLED" && r.startTime < endTime && r.endTime > startTime
+    );
     if (busy) return bad(`${coach.firstName} n'est pas disponible sur ce créneau`, 409);
   }
 
   const price = data.slots * court.pricePerSlot + (coach ? (coach.hourlyRate * data.slots) / 2 : 0);
-  const [reservation] = await db
-    .insert(t.reservations)
-    .values({ courtId: court.id, userId: session.userId, coachId: coach?.id, startTime, endTime, price })
-    .returning();
+  const reservation = db.reservations.insert({ courtId: court.id, userId: session.userId, coachId: coach?.id ?? null, startTime, endTime, price });
   const tx = await createTransaction(session.userId, "RESERVATION", reservation.id, price,
     `Réservation ${court.name}${coach ? ` avec ${coach.firstName} ${coach.lastName}` : ""}`);
   return NextResponse.json({ reservation, paymentUrl: `/dashboard/payments/${tx.id}` }, { status: 201 });

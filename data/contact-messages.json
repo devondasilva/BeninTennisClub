@@ -1,0 +1,22 @@
+[
+  {
+    "id": "7081674c-59d8-44f9-b482-0a1eeb2871d3",
+    "name": "Bernadette Kiki",
+    "email": "b.kiki@mail.bj",
+    "phone": "+229 97 12 12 12",
+    "subject": "École de tennis",
+    "message": "Bonjour, mon fils a 7 ans, reste-t-il des places le mercredi ?",
+    "status": "NEW",
+    "createdAt": "2026-10-05T14:00:00.000Z"
+  },
+  {
+    "id": "ff1f7dc4-676b-40ca-be80-0359ca782622",
+    "name": "Société Lagune Events",
+    "email": "contact@lagune-events.bj",
+    "phone": null,
+    "subject": "Privatisation",
+    "message": "Nous souhaitons privatiser deux courts pour un tournoi d'entreprise en décembre.",
+    "status": "READ",
+    "createdAt": "2026-10-04T20:00:00.000Z"
+  }
+]
