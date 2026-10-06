@@ -1,10 +1,10 @@
-// Crée / met à jour les tables à partir des migrations du dossier drizzle/
-import { migrate } from "drizzle-orm/libsql/migrator";
-import { db, DB_URL } from "./index";
+// Le projet utilise un stockage JSON local dans data/.
+// Ce module est gardé comme point d'entrée compatible avec les anciennes commandes de migration,
+// mais il ne fait rien : la base est automatiquement initialisée par le script `npm run reset`.
+export const DB_URL = process.env.DATA_DIR || "data";
 
-migrate(db, { migrationsFolder: "drizzle" })
-  .then(() => console.log(`✅ Base de données prête (${DB_URL})`))
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  });
+export async function migrateDb() {
+  return;
+}
+
+export default migrateDb;

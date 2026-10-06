@@ -1,7 +1,6 @@
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, t } from "@/db";
+import { db } from "@/db";
 import { apiSession, ROLES } from "@/lib/auth";
 import { bad, parse } from "@/lib/api";
 
@@ -15,6 +14,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (id === session.userId) return bad("Vous ne pouvez pas modifier votre propre rôle");
   const { data, error: e2 } = await parse(req, schema);
   if (e2) return e2;
-  await db.update(t.users).set({ role: data.role }).where(eq(t.users.id, id));
+
+  const user = db.users.get(id);
+  if (!user) return bad("Utilisateur introuvable");
+
+  db.users.update(id, { role: data.role });
   return NextResponse.json({ ok: true });
 }
