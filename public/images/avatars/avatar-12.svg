@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#1e293b"/><circle cx="320" cy="80" r="110" fill="#fff" opacity=".12"/><g transform="translate(170 310) rotate(-30) scale(1.2)">
+  <ellipse cx="0" cy="-90" rx="60" ry="78" fill="#ffffff22" stroke="#c8d965" stroke-width="12"/>
+  <line x1="-40" y1="-160" x2="-40" y2="-20" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="-20" y1="-160" x2="-20" y2="-20" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="0" y1="-160" x2="0" y2="-20" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="20" y1="-160" x2="20" y2="-20" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="40" y1="-160" x2="40" y2="-20" stroke="#fff" stroke-width="2" opacity=".6"/>
+  <line x1="-55" y1="-140" x2="55" y2="-140" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="-55" y1="-115" x2="55" y2="-115" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="-55" y1="-90" x2="55" y2="-90" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="-55" y1="-65" x2="55" y2="-65" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="-55" y1="-40" x2="55" y2="-40" stroke="#fff" stroke-width="2" opacity=".6"/>
+  <rect x="-12" y="-14" width="24" height="110" rx="8" fill="#111827"/></g><g transform="translate(230 310) rotate(30) scale(1.2)">
+  <ellipse cx="0" cy="-90" rx="60" ry="78" fill="#ffffff22" stroke="#fff" stroke-width="12"/>
+  <line x1="-40" y1="-160" x2="-40" y2="-20" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="-20" y1="-160" x2="-20" y2="-20" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="0" y1="-160" x2="0" y2="-20" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="20" y1="-160" x2="20" y2="-20" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="40" y1="-160" x2="40" y2="-20" stroke="#fff" stroke-width="2" opacity=".6"/>
+  <line x1="-55" y1="-140" x2="55" y2="-140" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="-55" y1="-115" x2="55" y2="-115" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="-55" y1="-90" x2="55" y2="-90" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="-55" y1="-65" x2="55" y2="-65" stroke="#fff" stroke-width="2" opacity=".6"/><line x1="-55" y1="-40" x2="55" y2="-40" stroke="#fff" stroke-width="2" opacity=".6"/>
+  <rect x="-12" y="-14" width="24" height="110" rx="8" fill="#111827"/></g>
+  <defs><radialGradient id="bg64" cx="35%" cy="30%" r="75%">
+    <stop offset="0" stop-color="#f4ff8a"/><stop offset=".6" stop-color="#d4e83a"/><stop offset="1" stop-color="#9fb21c"/>
+  </radialGradient></defs>
+  <circle cx="200" cy="110" r="34" fill="url(#bg64)"/>
+  <path d="M168.72 98.1 C 188.1 106.6, 188.1 130.4, 181.3 137.88"
+        fill="none" stroke="#fff" stroke-width="3.06" stroke-linecap="round" opacity=".95"/>
+  <path d="M231.28 121.9 C 211.9 113.4, 211.9 89.6, 218.7 82.12"
+        fill="none" stroke="#fff" stroke-width="3.06" stroke-linecap="round" opacity=".95"/></svg>

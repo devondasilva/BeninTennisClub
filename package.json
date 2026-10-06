@@ -1,0 +1,42 @@
+{
+  "name": "benin-tennis-club",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plateforme digitale du Bénin Tennis Club — réservations, événements, boutique, coachs, cordage, collectes",
+  "scripts": {
+    "setup": "tsx src/db/migrate.ts && tsx src/db/seed.ts",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:reset": "node -e \"require('fs').rmSync('btc.db',{force:true})\" && npm run setup",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio",
+    "images": "node scripts/generate-images.mjs"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.15.15",
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.44.7",
+    "jose": "^5.9.6",
+    "lucide-react": "^0.468.0",
+    "next": "15.5.27",
+    "nodemailer": "^6.9.16",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "stripe": "^17.4.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.2",
+    "@types/nodemailer": "^6.4.17",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.31.11",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

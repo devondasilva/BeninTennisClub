@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="bn51" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#020617"/><stop offset="1" stop-color="#1e3a5f"/></linearGradient></defs>
+  <rect width="1200" height="600" fill="url(#bn51)"/>
+  <g opacity=".12" stroke="#fff" stroke-width="6" fill="none">
+    <rect x="80" y="120" width="1040" height="420"/><line x1="600" y1="120" x2="600" y2="540"/>
+    <line x1="80" y1="330" x2="1120" y2="330"/><line x1="330" y1="160" x2="330" y2="500"/><line x1="870" y1="160" x2="870" y2="500"/>
+  </g>
+  <g transform="translate(220 600) scale(1.1)">
+  <polygon points="-180,-560 180,-560 30,-470 -30,-470" fill="#fff7d1" opacity=".18"/>
+  <rect x="-8" y="-480" width="16" height="480" fill="#0b1625"/>
+  <rect x="-70" y="-520" width="140" height="50" rx="6" fill="#0b1625"/>
+  <rect x="-62" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/><rect x="-29" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/><rect x="4" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/><rect x="37" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/></g><g transform="translate(600 600) scale(1.2)">
+  <polygon points="-180,-560 180,-560 30,-470 -30,-470" fill="#fff7d1" opacity=".18"/>
+  <rect x="-8" y="-480" width="16" height="480" fill="#0b1625"/>
+  <rect x="-70" y="-520" width="140" height="50" rx="6" fill="#0b1625"/>
+  <rect x="-62" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/><rect x="-29" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/><rect x="4" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/><rect x="37" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/></g><g transform="translate(980 600) scale(1.1)">
+  <polygon points="-180,-560 180,-560 30,-470 -30,-470" fill="#fff7d1" opacity=".18"/>
+  <rect x="-8" y="-480" width="16" height="480" fill="#0b1625"/>
+  <rect x="-70" y="-520" width="140" height="50" rx="6" fill="#0b1625"/>
+  <rect x="-62" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/><rect x="-29" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/><rect x="4" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/><rect x="37" y="-512" width="24" height="34" rx="3" fill="#fff7d1"/></g>
+</svg>

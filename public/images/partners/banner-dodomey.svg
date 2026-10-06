@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="ad68" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#15803d"/><stop offset="1" stop-color="#166534"/></linearGradient></defs>
+  <rect width="1200" height="300" fill="url(#ad68)"/>
+  <circle cx="1080" cy="40" r="210" fill="#fff" opacity=".08"/><circle cx="980" cy="320" r="140" fill="#fff" opacity=".06"/>
+  <g transform="translate(130 150)"><circle r="78" fill="#fff"/><g transform="scale(1.4)"><path d="M0 -42 L38 30 L-38 30 Z" fill="#15803d"/><circle cy="6" r="12" fill="#c8d965"/></g></g>
+  <text x="250" y="118" font-family="Arial" font-size="24" font-weight="700" fill="#fff" opacity=".85" letter-spacing="3">DODOMEY · SPORT &amp; NUTRITION</text>
+  <text x="250" y="178" font-family="Arial" font-size="46" font-weight="800" fill="#fff">-15 % pour les adhérents du club</text>
+  <rect x="250" y="206" width="258" height="48" rx="24" fill="#fff"/>
+  <text x="274" y="238" font-family="Arial" font-size="20" font-weight="700" fill="#15803d">Voir les offres →</text>
+</svg>

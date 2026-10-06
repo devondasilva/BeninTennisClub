@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <rect width="400" height="200" rx="16" fill="#fff"/>
+  <g transform="translate(70 100)"><rect x="-36" y="-36" width="72" height="72" rx="18" fill="#7c3aed"/><path d="M-16 -10 Q0 -26 16 -10 M-8 0 Q0 -8 8 0" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"/><circle cy="12" r="6" fill="#fff"/></g>
+  <text x="135" y="98" font-family="Arial" font-size="30" font-weight="800" fill="#7c3aed">Ouémé Tel</text>
+  <text x="137" y="126" font-family="Arial" font-size="15" fill="#64748b" letter-spacing="2">TÉLÉCOMS</text>
+</svg>

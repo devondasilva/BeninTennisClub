@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="pool"><stop offset="0" stop-color="#e8f0ff" stop-opacity=".9"/><stop offset=".45" stop-color="#9fb8e0" stop-opacity=".25"/><stop offset="1" stop-color="#1e3a5f" stop-opacity="0"/></radialGradient>
+    <radialGradient id="lamp"><stop offset="0" stop-color="#ffffff"/><stop offset=".4" stop-color="#f4f8ff" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="surf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f4f8f"/><stop offset="1" stop-color="#2a66b5"/></linearGradient>
+    <radialGradient id="glowball"><stop offset="0" stop-color="#e9f58a" stop-opacity=".9"/><stop offset="1" stop-color="#c8d965" stop-opacity="0"/></radialGradient>
+    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c8d965" stop-opacity="0"/><stop offset="1" stop-color="#c8d965" stop-opacity=".85"/></linearGradient>
+    <pattern id="mesh" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0L8 8M8 0L0 8" stroke="#0b1625" stroke-width="1"/></pattern>
+  </defs>
+  <rect width="1000" height="900" fill="#08111f"/>
+  <polygon points="-7609.7 7840.0 8609.7 7840.0 740.1 -20.1 259.9 -20.1" fill="#132a49"/>
+  <polygon points="-672.4 1765.0 1672.4 1765.0 668.9 31.7 331.1 31.7" fill="url(#surf)"/>
+  
+    <ellipse cx="-487.5250000000002" cy="897.1428571428571" rx="190" ry="120" fill="url(#pool)" opacity=".55"/>
+    <circle cx="-487.5250000000002" cy="897.1428571428571" r="9" fill="#0b1625"/><circle cx="-487.5250000000002" cy="897.1428571428571" r="26" fill="url(#lamp)"/>
+    <ellipse cx="1487.525" cy="897.1428571428571" rx="190" ry="120" fill="url(#pool)" opacity=".55"/>
+    <circle cx="1487.525" cy="897.1428571428571" r="9" fill="#0b1625"/><circle cx="1487.525" cy="897.1428571428571" r="26" fill="url(#lamp)"/>
+    <ellipse cx="220.92551473556716" cy="67.0084779975777" rx="190" ry="120" fill="url(#pool)" opacity=".55"/>
+    <circle cx="220.92551473556716" cy="67.0084779975777" r="9" fill="#0b1625"/><circle cx="220.92551473556716" cy="67.0084779975777" r="26" fill="url(#lamp)"/>
+    <ellipse cx="779.0744852644328" cy="67.0084779975777" rx="190" ry="120" fill="url(#pool)" opacity=".55"/>
+    <circle cx="779.0744852644328" cy="67.0084779975777" r="9" fill="#0b1625"/><circle cx="779.0744852644328" cy="67.0084779975777" r="26" fill="url(#lamp)"/>
+  <g opacity=".95">
+    <line x1="-672.41875" y1="1765" x2="1672.41875" y2="1765" stroke="#fff" stroke-width="6" stroke-linecap="square"/><line x1="331.1244148361541" y1="31.681670867843025" x2="668.8755851638459" y2="31.681670867843025" stroke="#fff" stroke-width="3" stroke-linecap="square"/><line x1="-672.41875" y1="1765" x2="331.1244148361541" y2="31.681670867843025" stroke="#fff" stroke-width="5" stroke-linecap="square"/><line x1="1672.41875" y1="1765" x2="668.8755851638459" y2="31.681670867843025" stroke="#fff" stroke-width="5" stroke-linecap="square"/>
+    <line x1="-379.58125000000007" y1="1765" x2="373.3048253510983" y2="31.681670867843025" stroke="#fff" stroke-width="4" stroke-linecap="square"/><line x1="1379.5812500000002" y1="1765" x2="626.6951746489017" y2="31.681670867843025" stroke="#fff" stroke-width="4" stroke-linecap="square"/>
+    <line x1="129.0643120716921" y1="593.9799683711124" x2="870.935687928308" y2="593.9799683711124" stroke="#fff" stroke-width="4" stroke-linecap="square"/><line x1="342.12138209558" y1="103.47318824321292" x2="657.87861790442" y2="103.47318824321292" stroke="#fff" stroke-width="3" stroke-linecap="square"/><line x1="500" y1="593.9799683711124" x2="500" y2="103.47318824321292" stroke="#fff" stroke-width="3" stroke-linecap="square"/>
+    <line x1="500" y1="1765" x2="500" y2="1602.0689655172416" stroke="#fff" stroke-width="6" stroke-linecap="square"/><line x1="500" y1="35.40481400437636" x2="500" y2="31.681670867843025" stroke="#fff" stroke-width="3" stroke-linecap="square"/>
+  </g>
+  <polygon points="156.3 249.9 843.7 249.9 812.2 203.3 187.8 203.3" fill="#08111f" opacity=".35"/>
+  <polygon points="156.3 249.9 843.7 249.9 854.8 266.5 145.2 266.5" fill="url(#mesh)" opacity=".9"/>
+  <line x1="145.16249593760153" y1="266.48683782905425" x2="854.8375040623985" y2="266.48683782905425" stroke="#fff" stroke-width="5" stroke-linecap="square"/>
+  
+  <path d="M178.11764705882354 692.9411764705883 Q 529.7511312217194 35.38461538461536 561.3846153846154 155.38461538461536" fill="none" stroke="url(#trail)" stroke-width="7" stroke-linecap="round" stroke-dasharray="2 14"/>
+  <circle cx="561.3846153846154" cy="155.38461538461536" r="48" fill="url(#glowball)"/>
+  <defs><radialGradient id="bg59" cx="35%" cy="30%" r="75%">
+    <stop offset="0" stop-color="#f4ff8a"/><stop offset=".6" stop-color="#d4e83a"/><stop offset="1" stop-color="#9fb21c"/>
+  </radialGradient></defs>
+  <circle cx="561.3846153846154" cy="155.38461538461536" r="15" fill="url(#bg59)"/>
+  <path d="M547.5846153846154 150.13461538461536 C 556.1346153846154 153.88461538461536, 556.1346153846154 164.38461538461536, 553.1346153846154 167.68461538461537"
+        fill="none" stroke="#fff" stroke-width="1.3499999999999999" stroke-linecap="round" opacity=".95"/>
+  <path d="M575.1846153846153 160.63461538461536 C 566.6346153846154 156.88461538461536, 566.6346153846154 146.38461538461536, 569.6346153846154 143.08461538461535"
+        fill="none" stroke="#fff" stroke-width="1.3499999999999999" stroke-linecap="round" opacity=".95"/>
+  <rect width="1000" height="900" fill="url(#vig)" opacity="0"/>
+</svg>

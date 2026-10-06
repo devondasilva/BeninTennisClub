@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <rect width="400" height="200" rx="16" fill="#fff"/>
+  <g transform="translate(70 100)"><circle r="40" fill="#0e7490"/><path d="M-30 8 Q-15 -8 0 8 T30 8" stroke="#fff" stroke-width="7" fill="none"/></g>
+  <text x="135" y="98" font-family="Arial" font-size="30" font-weight="800" fill="#0e7490">Atlantique</text>
+  <text x="137" y="126" font-family="Arial" font-size="15" fill="#64748b" letter-spacing="2">ASSURANCES</text>
+</svg>

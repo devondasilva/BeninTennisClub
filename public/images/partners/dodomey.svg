@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <rect width="400" height="200" rx="16" fill="#fff"/>
+  <g transform="translate(70 100)"><path d="M0 -42 L38 30 L-38 30 Z" fill="#15803d"/><circle cy="6" r="12" fill="#c8d965"/></g>
+  <text x="135" y="98" font-family="Arial" font-size="30" font-weight="800" fill="#15803d">Dodomey</text>
+  <text x="137" y="126" font-family="Arial" font-size="15" fill="#64748b" letter-spacing="2">SPORT &amp; NUTRITION</text>
+</svg>

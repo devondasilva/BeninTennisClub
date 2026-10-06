@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/>
+      <feColorMatrix values="0 0 0 0 0.45  0 0 0 0 0.18  0 0 0 0 0.06  0 0 0 .55 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+    <filter id="sweep"><feTurbulence type="fractalNoise" baseFrequency=".004 .08" numOctaves="2" seed="9"/>
+      <feColorMatrix values="0 0 0 0 1  0 0 0 0 .8  0 0 0 0 .6  0 0 0 .18 0"/></filter>
+    <linearGradient id="light" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>
+  </defs>
+  <rect width="1000" height="900" fill="#c4612f"/>
+  <rect width="1000" height="900" filter="url(#sweep)"/>
+  <rect width="1000" height="900" fill="#c4612f" filter="url(#grain)"/>
+  <g transform="rotate(-12 500 450)">
+    <rect x="-200" y="560" width="1500" height="26" fill="#f3efe6"/>
+    <rect x="470" y="140" width="24" height="430" fill="#f3efe6"/>
+    <rect x="-200" y="140" width="1500" height="22" fill="#f3efe6" opacity=".95"/>
+    <rect x="-200" y="-60" width="1500" height="60" fill="#0b1625" opacity=".18"/>
+  </g>
+  <ellipse cx="610" cy="470" rx="70" ry="22" transform="rotate(-20 610 470)" fill="#8f3f17" opacity=".55"/>
+  <ellipse cx="610" cy="470" rx="58" ry="15" transform="rotate(-20 610 470)" fill="#a94c1f" opacity=".6"/>
+  <ellipse cx="760" cy="420" rx="60" ry="14" fill="#5c2a10" opacity=".35"/>
+  <g transform="translate(750 365)">
+  <defs><radialGradient id="bg61" cx="35%" cy="30%" r="75%">
+    <stop offset="0" stop-color="#f4ff8a"/><stop offset=".6" stop-color="#d4e83a"/><stop offset="1" stop-color="#9fb21c"/>
+  </radialGradient></defs>
+  <circle cx="0" cy="0" r="58" fill="url(#bg61)"/>
+  <path d="M-53.36 -20.299999999999997 C -20.299999999999997 -5.800000000000001, -20.299999999999997 34.8, -31.900000000000002 47.559999999999995"
+        fill="none" stroke="#fff" stroke-width="5.22" stroke-linecap="round" opacity=".95"/>
+  <path d="M53.36 20.299999999999997 C 20.299999999999997 5.800000000000001, 20.299999999999997 -34.8, 31.900000000000002 -47.559999999999995"
+        fill="none" stroke="#fff" stroke-width="5.22" stroke-linecap="round" opacity=".95"/></g>
+  <rect width="1000" height="900" fill="url(#light)"/>
+</svg>

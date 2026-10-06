@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-slate-50 text-slate-800 antialiased; }
+  /* Repère clavier bien visible sur tout élément cliquable */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [role="switch"]:focus-visible {
+    outline: 3px solid #b5c74c; outline-offset: 2px;
+  }
+  button:not(:disabled), [role="button"], label[for], summary { cursor: pointer; }
+}
+
+@layer components {
+  .card { @apply bg-white rounded-2xl shadow-soft border border-slate-100; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-primary { @apply btn bg-primary-400 text-white hover:bg-primary-500; }
+  .btn-accent { @apply btn bg-accent-400 text-primary-400 hover:bg-accent-500; }
+  .btn-ghost { @apply btn bg-slate-100 text-slate-700 hover:bg-slate-200; }
+  .input { @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-200; }
+  .label { @apply mb-1.5 block text-sm font-medium text-slate-700; }
+  .chip { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .table-base { @apply w-full text-sm; }
+  .table-base th { @apply bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500; }
+  .table-base td { @apply border-t border-slate-100 px-4 py-3; }
+}
