@@ -6,6 +6,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
   const p = db.partners.get(id);
   if (!p) return NextResponse.redirect(new URL("/partenaires", req.url));
-  db.partners.update(id, (x) => ({ clicks: x.clicks + 1 }));
+  try {
+    db.partners.update(id, (x) => ({ clicks: x.clicks + 1 }));
+  } catch (e) {
+    console.warn("[BTC] Clic de bannière non compté :", (e as Error).message);
+  }
   return NextResponse.redirect(p.website || new URL(`/partenaires#${p.id}`, req.url).toString());
 }

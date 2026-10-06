@@ -8,8 +8,53 @@
 import fs from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
+import os from "os";
 
-export const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
+const BUNDLED_DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
+
+/**
+ * Dossier de données réellement utilisé.
+ * En local ou sur un serveur classique : data/ (ou DATA_DIR).
+ * Chez un hébergeur au disque en lecture seule (Vercel, Netlify…), data/ ne peut pas être modifié :
+ * les fichiers livrés sont alors copiés une fois dans le dossier temporaire du système, seul endroit
+ * inscriptible. Le site fonctionne, mais ces modifications ne sont pas conservées entre deux redémarrages.
+ */
+function isWritable(dir: string) {
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    const probe = path.join(dir, `.ecriture-${process.pid}.tmp`);
+    fs.writeFileSync(probe, "");
+    fs.rmSync(probe, { force: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+let resolvedDir: string | null = null;
+export function dataDir(): string {
+  if (resolvedDir) return resolvedDir;
+  if (isWritable(BUNDLED_DATA_DIR)) return (resolvedDir = BUNDLED_DATA_DIR);
+  const fallback = path.join(os.tmpdir(), "btc-data");
+  try {
+    fs.mkdirSync(fallback, { recursive: true });
+    if (fs.existsSync(BUNDLED_DATA_DIR)) {
+      for (const f of fs.readdirSync(BUNDLED_DATA_DIR)) {
+        const src = path.join(BUNDLED_DATA_DIR, f);
+        const dst = path.join(fallback, f);
+        if (f.endsWith(".json") && !fs.existsSync(dst)) fs.copyFileSync(src, dst);
+      }
+    }
+    console.warn(
+      `[BTC] Le dossier ${BUNDLED_DATA_DIR} est en lecture seule : données copiées dans ${fallback}. ` +
+        "Les modifications ne seront pas conservées après un redémarrage : utilisez un hébergement avec disque persistant."
+    );
+    return (resolvedDir = fallback);
+  } catch {
+    return (resolvedDir = BUNDLED_DATA_DIR);
+  }
+}
+/** Dossier livré avec le projet (compatibilité) */
+export const DATA_DIR = BUNDLED_DATA_DIR;
 
 type Row = { id: string };
 type Pred<T> = (row: T) => boolean;
@@ -58,7 +103,7 @@ export class Collection<T extends Row, D extends keyof T = never> {
   ) {}
 
   get file() {
-    return path.join(DATA_DIR, `${this.name}.json`);
+    return path.join(dataDir(), `${this.name}.json`);
   }
 
   private revive(raw: Record<string, unknown>): T {

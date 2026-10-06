@@ -44,6 +44,12 @@ export async function pickAd(placement: string) {
   const total = list.reduce((s, p) => s + (weight[p.tier] ?? 1), 0);
   let r = Math.random() * total;
   const ad = list.find((p) => (r -= weight[p.tier] ?? 1) < 0) ?? list[0];
-  db.partners.update(ad.id, (p) => ({ impressions: p.impressions + 1 }));
+  // Statistique non essentielle : un échec d'écriture (hébergeur en lecture seule, fichier verrouillé)
+  // ne doit jamais empêcher la page de s'afficher.
+  try {
+    db.partners.update(ad.id, (p) => ({ impressions: p.impressions + 1 }));
+  } catch (e) {
+    console.warn("[BTC] Affichage de bannière non compté :", (e as Error).message);
+  }
   return { id: ad.id, name: ad.name, tagline: ad.tagline, banner: partnerImage(ad, "banner")!, href: partnerClickUrl(ad.id) };
 }

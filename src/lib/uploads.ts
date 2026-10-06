@@ -1,8 +1,20 @@
 import { mkdir, writeFile } from "fs/promises";
 import { join } from "path";
+import { tmpdir } from "os";
+import { accessSync, mkdirSync, constants } from "fs";
 import { randomUUID } from "crypto";
 
-export const UPLOAD_DIR = join(process.cwd(), "uploads");
+function pickUploadDir() {
+  const local = join(process.cwd(), "uploads");
+  try {
+    mkdirSync(local, { recursive: true });
+    accessSync(local, constants.W_OK);
+    return local;
+  } catch {
+    return join(tmpdir(), "btc-uploads"); // hébergeur en lecture seule
+  }
+}
+export const UPLOAD_DIR = pickUploadDir();
 const EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 
 /**
